@@ -39,9 +39,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'El pedido debe incluir al menos un producto.' }, { status: 400 });
     }
 
+    let mesaId: number | null = null;
+    if (mesa_id != null) {
+      mesaId = Number(mesa_id);
+      if (!Number.isInteger(mesaId) || mesaId <= 0) {
+        return NextResponse.json({ error: 'mesa_id inválido.' }, { status: 400 });
+      }
+    }
+
     if (user.rol === 'CLIENTE') {
       const pedido = crearPedido({
         cliente_id: user.sub,
+        mesa_id: mesaId,
         origen: 'CLIENTE',
         observaciones,
         items,
@@ -55,7 +64,7 @@ export async function POST(req: NextRequest) {
       }
       const pedido = crearPedido({
         mesero_id: user.sub,
-        mesa_id,
+        mesa_id: mesaId,
         cliente_id: body.cliente_id ?? null,
         origen: 'MESERO',
         observaciones,

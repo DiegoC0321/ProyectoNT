@@ -20,3 +20,9 @@ export function crearMesa(numero: number, capacidad: number): Mesa {
   const info = db.prepare('INSERT INTO mesa (numero, capacidad, estado) VALUES (?, ?, ?)').run(numero, capacidad, 'LIBRE');
   return db.prepare('SELECT * FROM mesa WHERE id = ?').get(Number(info.lastInsertRowid)) as Mesa;
 }
+
+/** QR/NFC por mesa: resuelve la mesa a partir de su número impreso. */
+export function buscarMesaPorNumero(numero: number): Mesa | undefined {
+  const db = getDb();
+  return db.prepare('SELECT * FROM mesa WHERE numero = ?').get(numero) as Mesa | undefined;
+}

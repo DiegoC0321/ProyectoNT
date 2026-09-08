@@ -11,8 +11,8 @@ export const orderService = {
 
   obtener: (id: number) => api.get<{ pedido: Pedido }>(`/orders/${id}`),
 
-  crearComoCliente: (items: ItemCarrito[], observaciones?: string) =>
-    api.post<{ pedido: Pedido }>('/orders', { items, observaciones }),
+  crearComoCliente: (items: ItemCarrito[], observaciones?: string, mesaId?: number) =>
+    api.post<{ pedido: Pedido }>('/orders', mesaId != null ? { items, observaciones, mesa_id: mesaId } : { items, observaciones }),
 
   crearComoMesero: (mesaId: number, items: ItemCarrito[], observaciones?: string, confirmado = false) =>
     api.post<{ pedido: Pedido }>('/orders', { mesa_id: mesaId, items, observaciones, confirmado }),

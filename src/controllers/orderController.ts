@@ -94,6 +94,11 @@ export function crearPedido(input: CrearPedidoInput): Pedido {
     let total = 0;
     const detallesCalculados: { platillo_id: number; cantidad: number; precio_unitario: number; subtotal: number }[] = [];
 
+    if (input.mesa_id) {
+      const mesa = db.prepare('SELECT id FROM mesa WHERE id = ?').get(input.mesa_id);
+      if (!mesa) throw new Error('La mesa indicada no existe.');
+    }
+
     for (const item of input.items) {
       const platillo = db
         .prepare('SELECT id, precio, disponible FROM platillo WHERE id = ?')

@@ -8,7 +8,7 @@ import { orderService } from '@/services/orderService';
 import { formatearMoneda } from '@/utils/format';
 
 export default function CarritoPage() {
-  const { items, cambiarCantidad, quitar, vaciar, total } = useCart();
+  const { items, cambiarCantidad, quitar, vaciar, total, mesa } = useCart();
   const [observaciones, setObservaciones] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
@@ -20,7 +20,8 @@ export default function CarritoPage() {
     try {
       const { pedido } = await orderService.crearComoCliente(
         items.map((i) => ({ platillo_id: i.platillo.id, cantidad: i.cantidad })),
-        observaciones || undefined
+        observaciones || undefined,
+        mesa?.id
       );
       vaciar();
       router.push(`/cliente/pedidos?nuevo=${pedido.id}`);
@@ -47,6 +48,12 @@ export default function CarritoPage() {
     <div className="container py-5" style={{ maxWidth: 700 }}>
       <h1 className="mb-4">Resumen de tu pedido</h1>
       {error && <div className="alert alert-danger">{error}</div>}
+
+      {mesa && (
+        <div className="alert alert-success py-2">
+          <i className="bi bi-qr-code"></i> Tu pedido se enviará a la <strong>mesa {mesa.numero}</strong>.
+        </div>
+      )}
 
       <table className="table align-middle">
         <thead>

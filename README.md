@@ -203,6 +203,7 @@ POST   /api/orders/:id/repeat       Repetir pedido anterior — RF06
 
 GET    /api/tables                 Listar mesas — RF08
 POST   /api/tables                 Crear mesa (admin)
+GET    /api/tables/by-number/:numero  Público: resuelve la mesa del QR/NFC por número
 PUT    /api/tables/:id              Cambiar estado de mesa — RF08
 
 GET    /api/inventory              Consultar inventario — RF12
