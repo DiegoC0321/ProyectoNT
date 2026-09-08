@@ -1,0 +1,16 @@
+body {
+  background-color: #f7f5f2;
+}
+
+.card-img-top img {
+  transition: transform 0.2s ease-in-out;
+}
+
+.card:hover .card-img-top img {
+  transform: scale(1.03);
+}
+
+.hero-section {
+  background: linear-gradient(135deg, #2b1b12 0%, #6b3f1d 100%);
+  color: #fff;
+}

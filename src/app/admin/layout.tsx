@@ -1,0 +1,7 @@
+'use client';
+
+import RequireRole from '@/components/RequireRole';
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return <RequireRole roles={['ADMINISTRADOR']}>{children}</RequireRole>;
+}
