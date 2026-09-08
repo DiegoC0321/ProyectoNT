@@ -267,7 +267,9 @@ de extremo a extremo. Se diseñó con un contrato estable
 ## 10. Instalación y ejecución
 
 ### Requisitos previos
-- Node.js 18 o superior
+- Node.js **20 LTS** (recomendado: las versiones de Node superiores a 20 no
+  tienen binarios precompilados para `better-sqlite3` y exigen Visual Studio
+  C++ para compilarse desde fuente)
 - npm
 
 ### Pasos
@@ -356,3 +358,32 @@ npm run start
   driver con una API similar).
 - El módulo de recomendaciones está aislado en un único archivo para facilitar
   su reemplazo por un modelo de IA real sin afectar el resto del sistema.
+
+---
+
+## 14. Auditoría de fases de desarrollo (estado del roadmap)
+
+Evaluación por fase del ciclo de desarrollo del proyecto, con lo que está
+pendiente o mejorable desde una perspectiva de desarrollo de largo plazo:
+
+| # | Fase | Estado | Evaluación y recomendaciones |
+|---|------|--------|------------------------------|
+| 1 | Proyecto Next.js + TS + Bootstrap + estructura MVW | ✅ Implementada | Correcta y bien adaptada a App Router: los controladores solo corren en servidor y el frontend habla con el backend vía `src/services/*` tipados. Mejorable: aprovechar más Server Components para reducir JS en cliente y estado global. |
+| 2 | Base de datos + modelos | ✅ Implementada | Esquema relacional normalizado (PK/FK, `CHECK`, índices, auditoría, relación N:M). Sin sistema de migraciones (`schema.sql` + `IF NOT EXISTS`): suficiente para el alcance, pero un proyecto mayor usaría migraciones versionadas. Requiere Node 20 para los binarios precompilados de `better-sqlite3`. |
+| 3 | API REST | ✅ Implementada | Recursos y verbos correctos, capa de controladores limpia, errores consistentes `{ error }`. Pendiente: validación centralizada (`zod` está instalado pero sin uso), esquema de respuesta tipado y paginación (aceptable a esta escala). |
+| 4 | JWT + roles y permisos | ✅ Implementada | Doble capa ejecutada con rigor: frontend (UX) y backend (barrera real) con `requireAuth`/`requireRole`; transiciones de pedido modeladas como máquina de estados; `bcrypt` cost 10; cookie `httpOnly` + `sameSite: lax`. Riesgos: `JWT_SECRET` con fallback en dev (forzar variable en producción), añadir `Secure` en HTTPS y rate-limit en `/api/auth/login`. |
+| 5 | Módulo cliente | ✅ Implementada | RF02–RF06 cubiertos: menú, carrito, seguimiento, repetir pedido y recomendaciones. |
+| 6 | Módulo mesero | ✅ Implementada | RF07/RF08/RF10 completos; el flujo borrador → confirmar está bien diseñado. El refresco es por polling (8 s); con SSE se volvería instantáneo. |
+| 7 | Módulo cocina | ✅ Implementada | RF16/RF17 correctos, orden de llegada respetado, notificaciones a mesero/cliente al quedar LISTO. Polling de 6 s: "tiempo real" aproximado, no push real. |
+| 8 | Módulo administrador | ✅ Implementada | RF11–RF15 (dashboard, inventario + alertas, menú CRUD, usuarios/roles, reportes por periodo). Nota: el consumo de inventario en reportes es **estimado**; no se descuenta automáticamente al confirmar un pedido. |
+| 9 | IA para recomendaciones | ✅ Implementada (motor por reglas) | Contrato estable aislado (`recomendarPlatillos`) listo para sustituirse por un LLM. No es ML real: combina popularidad + categorías favoritas con historial. Honesto y bien encapsulado; si se escala, conviene un score de relevancia y prueba A/B. |
+| 10 | Notificaciones, validaciones, pruebas | ◐ Parcial | **Notificaciones**: se *escriben* (`PEDIDO_NUEVO`, `PEDIDO_LISTO`, `STOCK_BAJO`) pero no hay endpoint para leerlas ni marcarlas como leídas, y no existe UI (campana/badges); solo se perciben vía polling de pedidos. **Validaciones**: manuales en cada ruta; `zod` sin usar. **Pruebas**: no hay framework ni tests automatizados; la verificación fue manual (401/403, build). |
+
+### Colas de trabajo recomendadas (por prioridad)
+
+1. **Cerrar notificaciones**: `GET /api/notifications` y `PATCH /api/notifications/:id` (leída) + campana con badge de no leídas. Las funciones del controlador ya existen; solo falta exponerlas.
+2. **Tiempo real real**: reemplazar el polling (6–8 s) por **SSE** (`/api/notifications/stream`) para mesero/cocina/cliente.
+3. **Validación centralizada con zod**: esquemas por recurso en las rutas de escritura y errores tipados por endpoint.
+4. **Tests automatizados mínimos**: al menos autenticación (401/403), creación de pedidos y transiciones de estado (validar la máquina de estados).
+5. **Endurecer autenticación**: exigir `JWT_SECRET` en producción y añadir rate-limit en `/api/auth/login`.
+6. **Opcionales**: descuento automático de inventario al confirmar el pedido y migraciones versionadas de esquema.
