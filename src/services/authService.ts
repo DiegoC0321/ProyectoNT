@@ -10,5 +10,7 @@ export const authService = {
 
   logout: () => api.post<{ message: string }>('/auth/logout'),
 
+  sesionInvitado: () => api.post<{ usuario: UsuarioPublico }>('/auth/guest'),
+
   me: () => api.get<{ usuario: UsuarioPublico }>('/auth/me'),
 };

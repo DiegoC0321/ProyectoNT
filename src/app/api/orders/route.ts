@@ -14,8 +14,23 @@ export async function GET(req: NextRequest) {
   if (user.rol === 'CLIENTE') {
     return NextResponse.json({ pedidos: listarPedidos({ clienteId: user.sub, estado: estado ?? undefined }) });
   }
+  if (user.rol === 'INVITADO') {
+    // Invitado: solo ve los pedidos de su mesa.
+    const mesaId = Number(searchParams.get('mesa_id') ?? '0');
+    if (!Number.isInteger(mesaId) || mesaId <= 0) {
+      return NextResponse.json({ pedidos: [] });
+    }
+    return NextResponse.json({ pedidos: listarPedidos({ mesaId, estado: estado ?? undefined }) });
+  }
   if (user.rol === 'MESERO') {
-    return NextResponse.json({ pedidos: listarPedidos({ meseroId: user.sub, estado: estado ?? undefined }) });
+    // RF10 — El mesero ve sus propios pedidos + todos los borradores pendientes
+    // de confirmar (los que el cliente mandó desde la mesa) para revisarlos/confirmarlos.
+    const propios = listarPedidos({ meseroId: user.sub, estado: estado ?? undefined });
+    const pendientes = listarPedidos({ confirmado: 0, estado: estado ?? undefined });
+    const mapa = new Map<number, ReturnType<typeof listarPedidos>[number]>();
+    for (const p of propios) mapa.set(p.id, p);
+    for (const p of pendientes) if (!mapa.has(p.id)) mapa.set(p.id, p);
+    return NextResponse.json({ pedidos: [...mapa.values()] });
   }
   if (user.rol === 'COCINA') {
     // RF16 — pedidos entrantes en orden de llegada
@@ -54,6 +69,25 @@ export async function POST(req: NextRequest) {
         origen: 'CLIENTE',
         observaciones,
         items,
+      });
+      return NextResponse.json({ pedido }, { status: 201 });
+    }
+
+    if (user.rol === 'INVITADO') {
+      // Invitado: pedido anónimo ligado a la mesa (sin cuenta).
+      // Nace como BORRADOR para que el mesero lo revise, edite y confirme antes de cocina.
+      if (!mesa_id) {
+        return NextResponse.json(
+          { error: 'Debes indicar la mesa (mesa_id) para registrar el pedido.' },
+          { status: 400 }
+        );
+      }
+      const pedido = crearPedido({
+        mesa_id: mesaId,
+        origen: 'CLIENTE',
+        observaciones,
+        items,
+        confirmado: false,
       });
       return NextResponse.json({ pedido }, { status: 201 });
     }

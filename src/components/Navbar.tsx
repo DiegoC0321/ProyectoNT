@@ -4,6 +4,13 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 
 const ENLACES_POR_ROL: Record<string, { href: string; label: string }[]> = {
+  INVITADO: [
+    { href: '/cliente', label: 'Inicio' },
+    { href: '/cliente/menu', label: 'Menú' },
+    { href: '/cliente/carrito', label: 'Carrito' },
+    { href: '/cliente/pedidos', label: 'Mis pedidos' },
+    { href: '/cliente/recomendaciones', label: 'Recomendaciones' },
+  ],
   CLIENTE: [
     { href: '/cliente', label: 'Dashboard' },
     { href: '/cliente/menu', label: 'Menú' },
@@ -70,29 +77,16 @@ export default function Navbar() {
               <>
                 <li className="nav-item me-2">
                   <span className="badge text-bg-light text-dark">
-                    {usuario.nombre} · {usuario.rol}
+                    {usuario.rol === 'INVITADO' ? 'Invitado' : `${usuario.nombre} · ${usuario.rol}`}
                   </span>
                 </li>
                 <li className="nav-item">
                   <button className="btn btn-outline-light btn-sm" onClick={() => logout()}>
-                    Cerrar sesión
+                    {usuario.rol === 'INVITADO' ? 'Cerrar' : 'Cerrar sesión'}
                   </button>
                 </li>
               </>
-            ) : (
-              <>
-                <li className="nav-item me-2">
-                  <Link className="btn btn-outline-light btn-sm" href="/login">
-                    Iniciar sesión
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="btn btn-warning btn-sm" href="/register">
-                    Registrarse
-                  </Link>
-                </li>
-              </>
-            )}
+            ) : null}
           </ul>
         </div>
       </div>

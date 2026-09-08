@@ -4,11 +4,15 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import { orderService } from '@/services/orderService';
 import { formatearMoneda } from '@/utils/format';
 
 export default function CarritoPage() {
   const { items, cambiarCantidad, quitar, vaciar, total, mesa } = useCart();
+  const { usuario } = useAuth();
+  const esInvitado = usuario?.rol === 'INVITADO';
+  const sinMesa = esInvitado && !mesa;
   const [observaciones, setObservaciones] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
@@ -52,6 +56,13 @@ export default function CarritoPage() {
       {mesa && (
         <div className="alert alert-success py-2">
           <i className="bi bi-qr-code"></i> Tu pedido se enviará a la <strong>mesa {mesa.numero}</strong>.
+        </div>
+      )}
+
+      {sinMesa && (
+        <div className="alert alert-warning py-2">
+          <i className="bi bi-qr-code-scan"></i> Escanea el código QR de tu mesa antes de confirmar, para que el pedido
+          llegue a tu mesa.
         </div>
       )}
 
@@ -107,7 +118,7 @@ export default function CarritoPage() {
           <Link href="/cliente/menu" className="btn btn-outline-secondary">
             Seguir pidiendo
           </Link>
-          <button className="btn btn-warning" onClick={handleConfirmar} disabled={enviando}>
+          <button className="btn btn-warning" onClick={handleConfirmar} disabled={enviando || sinMesa}>
             {enviando ? 'Enviando...' : 'Confirmar y enviar pedido'}
           </button>
         </div>

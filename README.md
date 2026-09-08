@@ -173,6 +173,7 @@ Todas las rutas viven bajo `/api` y devuelven JSON. Resumen:
 ```
 POST   /api/auth/register          Registro de clientes (RF03)
 POST   /api/auth/login             Inicio de sesión
+POST   /api/auth/guest             Sesión de invitado anónima (pedido por mesa sin contraseña)
 POST   /api/auth/logout            Cierre de sesión
 GET    /api/auth/me                Usuario autenticado actual
 

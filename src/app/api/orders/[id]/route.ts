@@ -9,7 +9,8 @@ interface Params {
 function puedeVerPedido(user: { sub: number; rol: string }, pedido: ReturnType<typeof obtenerPedido>) {
   if (user.rol === 'ADMINISTRADOR' || user.rol === 'COCINA') return true;
   if (user.rol === 'CLIENTE') return pedido.cliente_id === user.sub;
-  if (user.rol === 'MESERO') return pedido.mesero_id === user.sub;
+  // MESERO: sus propios pedidos + cualquier borrador pendiente de confirmar (pedidos de mesa)
+  if (user.rol === 'MESERO') return pedido.mesero_id === user.sub || !pedido.confirmado;
   return false;
 }
 

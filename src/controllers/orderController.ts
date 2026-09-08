@@ -52,7 +52,13 @@ export function obtenerPedido(id: number): Pedido {
 }
 
 export function listarPedidos(
-  filtros: { clienteId?: number; estado?: EstadoPedido; mesaId?: number; meseroId?: number } = {}
+  filtros: {
+    clienteId?: number;
+    estado?: EstadoPedido;
+    mesaId?: number;
+    meseroId?: number;
+    confirmado?: 0 | 1;
+  } = {}
 ): Pedido[] {
   const db = getDb();
   let query = `
@@ -76,6 +82,10 @@ export function listarPedidos(
   if (filtros.meseroId) {
     query += ' AND pe.mesero_id = ?';
     params.push(filtros.meseroId);
+  }
+  if (filtros.confirmado !== undefined) {
+    query += ' AND pe.confirmado = ?';
+    params.push(filtros.confirmado);
   }
   query += ' ORDER BY pe.created_at ASC';
 
@@ -261,9 +271,11 @@ export function actualizarEstadoPedido(id: number, nuevoEstado: EstadoPedido): P
   return obtenerPedido(id);
 }
 
-/** RF16 — Pedidos entrantes para cocina, en orden de llegada */
+/** RF16 — Pedidos entrantes para cocina (solo confirmados por el mesero) */
 export function listarPedidosCocina(): Pedido[] {
-  return listarPedidos().filter((p) => p.estado === 'RECIBIDO' || p.estado === 'EN PREPARACION');
+  return listarPedidos({ confirmado: 1 }).filter(
+    (p) => p.estado === 'RECIBIDO' || p.estado === 'EN PREPARACION'
+  );
 }
 
 /** RF06 — Historial de pedidos del cliente */

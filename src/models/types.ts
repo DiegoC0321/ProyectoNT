@@ -3,7 +3,7 @@
  * Reflejan directamente las tablas de la base de datos relacional.
  */
 
-export type RolNombre = 'CLIENTE' | 'MESERO' | 'COCINA' | 'ADMINISTRADOR';
+export type RolNombre = 'CLIENTE' | 'MESERO' | 'COCINA' | 'ADMINISTRADOR' | 'INVITADO';
 
 export interface Usuario {
   id: number;

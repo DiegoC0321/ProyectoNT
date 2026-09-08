@@ -2,7 +2,6 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import type { RolNombre } from '@/models/types';
 
@@ -11,6 +10,7 @@ const RUTA_POR_ROL: Record<RolNombre, string> = {
   MESERO: '/mesero',
   COCINA: '/cocina',
   ADMINISTRADOR: '/admin',
+  INVITADO: '/cliente',
 };
 
 export default function LoginPage() {
@@ -66,9 +66,6 @@ export default function LoginPage() {
               {cargando ? 'Ingresando...' : 'Ingresar'}
             </button>
           </form>
-          <p className="text-center mt-3 mb-0">
-            ¿No tienes cuenta? <Link href="/register">Regístrate aquí</Link>
-          </p>
           <hr />
           <p className="small text-muted mb-1">Usuarios de demostración:</p>
           <ul className="small text-muted mb-0">

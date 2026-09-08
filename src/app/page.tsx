@@ -14,8 +14,8 @@ export default function HomePage() {
             <Link href="/menu" className="btn btn-warning btn-lg">
               <i className="bi bi-book"></i> Ver menú
             </Link>
-            <Link href="/register" className="btn btn-outline-light btn-lg">
-              Crear cuenta
+            <Link href="/menu?mesa=1" className="btn btn-outline-light btn-lg">
+              <i className="bi bi-qr-code-scan"></i> Pedir por mesa
             </Link>
           </div>
         </div>

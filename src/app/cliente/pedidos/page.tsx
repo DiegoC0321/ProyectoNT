@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { orderService } from '@/services/orderService';
+import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
 import PedidoCard from '@/components/PedidoCard';
 import type { Pedido } from '@/models/types';
 
@@ -10,14 +12,18 @@ export default function MisPedidosPage() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   const [mensaje, setMensaje] = useState('');
+  const { usuario } = useAuth();
+  const { mesa } = useCart();
+
+  const esInvitado = usuario?.rol === 'INVITADO';
 
   const cargar = useCallback(() => {
     orderService
-      .listar()
+      .listar(esInvitado ? { mesaId: mesa?.id ?? undefined } : undefined)
       .then((res) => setPedidos(res.pedidos))
       .catch((err) => setError(err.message))
       .finally(() => setCargando(false));
-  }, []);
+  }, [esInvitado, mesa?.id]);
 
   useEffect(() => {
     cargar();
@@ -84,7 +90,7 @@ export default function MisPedidosPage() {
             key={p.id}
             pedido={p}
             acciones={
-              p.estado === 'ENTREGADO' ? (
+              p.estado === 'ENTREGADO' && !esInvitado ? (
                 <button className="btn btn-sm btn-warning" onClick={() => handleRepetir(p.id)}>
                   <i className="bi bi-arrow-repeat"></i> Repetir pedido
                 </button>

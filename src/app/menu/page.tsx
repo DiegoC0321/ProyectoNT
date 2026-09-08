@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { menuService } from '@/services/menuService';
 import { api } from '@/services/api';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import PlatilloCard from '@/components/PlatilloCard';
 import type { Platillo, Categoria, Mesa } from '@/models/types';
 
@@ -25,9 +26,19 @@ function MenuPublicoContent() {
   const [mesa, setMesa] = useState<Mesa | null>(null);
   const [mesaError, setMesaError] = useState('');
   const { setMesa: guardarMesa } = useCart();
+  const { usuario, cargando: cargandoAuth, crearSesionInvitado } = useAuth();
   const searchParams = useSearchParams();
 
   const numeroMesa = Number(searchParams.get('mesa'));
+
+  useEffect(() => {
+    if (!searchParams.has('mesa') || cargandoAuth) return;
+    if (!usuario) {
+      // Sin contraseña: se crea una sesión anónima para que pueda pedir.
+      crearSesionInvitado().catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, cargandoAuth, usuario]);
 
   useEffect(() => {
     Promise.all([menuService.listar(true), menuService.listarCategorias()])
@@ -99,8 +110,8 @@ function MenuPublicoContent() {
 
       {!mesa && !mesaError && (
         <div className="alert alert-info mt-4">
-          <i className="bi bi-info-circle"></i> Escanea el código QR de tu mesa para pedir directamente, o inicia sesión
-          para gestionar tus pedidos.
+          <i className="bi bi-info-circle"></i> Escanea el código QR de tu mesa para pedir directamente, sin necesidad de
+          crear una cuenta.
         </div>
       )}
     </div>

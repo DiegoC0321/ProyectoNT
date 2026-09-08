@@ -37,7 +37,9 @@ export default function PedidoCard({ pedido, acciones }: Props) {
         )}
         <div className="d-flex justify-content-between align-items-center">
           <span className="fw-bold fs-5">Total: {formatearMoneda(pedido.total)}</span>
-          {!pedido.confirmado && <span className="badge text-bg-info">Borrador (sin enviar a cocina)</span>}
+          {!pedido.confirmado && (
+            <span className="badge text-bg-info">Pendiente de confirmación del mesero</span>
+          )}
         </div>
         {acciones && <div className="mt-3 d-flex gap-2 flex-wrap">{acciones}</div>}
       </div>
