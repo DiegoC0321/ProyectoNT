@@ -20,11 +20,11 @@ export default function RegisterPage() {
     setError('');
 
     if (password !== confirmar) {
-      setError('Las contraseñas no coinciden.');
+      setError('Le due parole non sono uguali.');
       return;
     }
     if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres.');
+      setError('Almeno sei caratteri, altrimenti non passi.');
       return;
     }
 
@@ -41,37 +41,55 @@ export default function RegisterPage() {
 
   return (
     <div className="container py-5" style={{ maxWidth: 460 }}>
-      <div className="card shadow-sm">
+      <div className="rv-formulario-card">
+        <div className="card-header">
+          <div className="text-center">
+            <p className="rv-eyebrow rv-eyebrow-dark mb-2">Il sistema · creare un posto</p>
+            <h2 className="rv-subrayado" style={{ fontSize: '1.8rem', textAlign: 'center' }}>
+              Creare la chiave
+            </h2>
+            <p className="rv-bajada" style={{ margin: '0.4rem auto 0', maxWidth: '100%' }}>
+              nessuno viene senza una chiave — anche i migliori cominciano così
+            </p>
+          </div>
+        </div>
         <div className="card-body p-4">
-          <h2 className="text-center mb-4">Crear cuenta de cliente</h2>
           {error && <div className="alert alert-danger py-2">{error}</div>}
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
-              <label className="form-label">Nombre completo</label>
-              <input className="form-control" required value={nombre} onChange={(e) => setNombre(e.target.value)} />
+              <label className="form-label">Come ti chiami</label>
+              <input
+                className="form-control"
+                required
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                placeholder="Rosario Esposito"
+              />
             </div>
             <div className="mb-3">
-              <label className="form-label">Correo electrónico</label>
+              <label className="form-label">La chiave — email</label>
               <input
                 type="email"
                 className="form-control"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="rosario@demo.com"
               />
             </div>
             <div className="mb-3">
-              <label className="form-label">Contraseña</label>
+              <label className="form-label">La parola — password</label>
               <input
                 type="password"
                 className="form-control"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="almeno 6 caratteri"
               />
             </div>
             <div className="mb-3">
-              <label className="form-label">Confirmar contraseña</label>
+              <label className="form-label">Riscrivila</label>
               <input
                 type="password"
                 className="form-control"
@@ -81,11 +99,14 @@ export default function RegisterPage() {
               />
             </div>
             <button type="submit" className="btn btn-warning w-100" disabled={cargando}>
-              {cargando ? 'Creando cuenta...' : 'Registrarme'}
+              {cargando ? 'fatto, si fa...' : 'Crear la chiave'}
             </button>
           </form>
           <p className="text-center mt-3 mb-0">
-            ¿Ya tienes cuenta? <Link href="/login">Inicia sesión</Link>
+            Hai già la chiave? <Link href="/login">Entrami</Link>
+          </p>
+          <p className="rv-accentos-demo mt-3">
+            la chiave è tua — per il cliente, per la sala, per la cucina, per il cassaio.
           </p>
         </div>
       </div>

@@ -37,8 +37,16 @@ export default function ReportesPage() {
   }
 
   return (
-    <div className="container py-5">
-      <h1 className="mb-4">Reportes por periodo</h1>
+    <div>
+      <div className="rv-panel-cabecera">
+        <div className="container">
+          <p className="rv-eyebrow rv-eyebrow-dark">Il sistema · reportes</p>
+          <h1 className="rv-panel-nombre">Reportes <em>del periodo</em></h1>
+          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>conta i soldi, guarda i numeri — ogni settimana</p>
+        </div>
+      </div>
+      <div className="container pb-4 pt-3">
+      <h2 className="mb-4" style={{ fontFamily: 'var(--font-display)' }}>Reportes por periodo</h2>
 
       <form onSubmit={handleSubmit} className="row g-3 align-items-end mb-4">
         <div className="col-auto">
@@ -123,6 +131,7 @@ export default function ReportesPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

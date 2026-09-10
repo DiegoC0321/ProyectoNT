@@ -38,89 +38,166 @@ export default function CarritoPage() {
 
   if (items.length === 0) {
     return (
-      <div className="container py-5 text-center">
-        <i className="bi bi-cart-x fs-1 text-muted"></i>
-        <h3 className="mt-3">Tu carrito está vacío</h3>
-        <Link href="/cliente/menu" className="btn btn-warning mt-3">
-          Ver menú
-        </Link>
+      <div>
+        <section className="rv-menu-cabecera" style={{ padding: '2.5rem 0' }}>
+          <div className="container">
+            <p className="rv-eyebrow rv-eyebrow-claro">Il carrello</p>
+            <h1 className="rv-menu-marca">Il <span>Conto</span></h1>
+          </div>
+        </section>
+        <div className="container py-5 text-center">
+          <div className="rv-listado-platos" style={{ maxWidth: 420, margin: '0 auto' }}>
+            <div className="rv-listado-cuerpo" style={{ textAlign: 'center', padding: '2.5rem 1.5rem' }}>
+              <i className="bi bi-cart-x" style={{ fontSize: '2.5rem', color: 'var(--rv-tinta-2)', opacity: 0.5 }}></i>
+              <h3 style={{ fontFamily: 'var(--font-display)', marginTop: '1rem' }}>Il carrello è vuoto</h3>
+              <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.6rem 0 1.4rem' }}>
+                ninguno ha ordinato ancora — che cosa vuoi stamattina?
+              </p>
+              <Link href="/cliente/menu" className="rv-btn rv-btn-pomodoro">
+                <i className="bi bi-book"></i> Ver la carta
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container py-5" style={{ maxWidth: 700 }}>
-      <h1 className="mb-4">Resumen de tu pedido</h1>
-      {error && <div className="alert alert-danger">{error}</div>}
-
-      {mesa && (
-        <div className="alert alert-success py-2">
-          <i className="bi bi-qr-code"></i> Tu pedido se enviará a la <strong>mesa {mesa.numero}</strong>.
+    <div>
+      <section className="rv-menu-cabecera" style={{ padding: '2.5rem 0' }}>
+        <div className="container">
+          <p className="rv-eyebrow rv-eyebrow-claro">Il carrello</p>
+          <h1 className="rv-menu-marca">Il <span>Conto</span></h1>
+          <p className="rv-menu-sub">il tuo ordine — pronto per la cucina</p>
         </div>
-      )}
+      </section>
 
-      {sinMesa && (
-        <div className="alert alert-warning py-2">
-          <i className="bi bi-qr-code-scan"></i> Escanea el código QR de tu mesa antes de confirmar, para que el pedido
-          llegue a tu mesa.
+      <div className="container py-4" style={{ maxWidth: 700 }}>
+        {error && (
+          <div className="alert alert-danger rv-card-panel">
+            <i className="bi bi-exclamation-triangle"></i> {error}
+          </div>
+        )}
+
+        {mesa && (
+          <div className="rv-card-panel d-flex align-items-center gap-2 p-3 mb-4" style={{ background: 'var(--rv-crema)', borderLeft: '4px solid var(--rv-oliva)' }}>
+            <i className="bi bi-qr-code" style={{ color: 'var(--rv-oliva)', fontSize: '1.3rem' }}></i>
+            <span>Tu pedido se enviará a la <strong>mesa {mesa.numero}</strong>.</span>
+          </div>
+        )}
+
+        {sinMesa && (
+          <div className="rv-card-panel d-flex align-items-center gap-2 p-3 mb-4" style={{ background: 'var(--rv-papel-2)', borderLeft: '4px solid var(--rv-oro)' }}>
+            <i className="bi bi-qr-code-scan" style={{ color: 'var(--rv-oro)', fontSize: '1.3rem' }}></i>
+            <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
+              Escanea el código QR de tu mesa antes de confirmar.
+            </span>
+          </div>
+        )}
+
+        {/* Tabla de items */}
+        <div className="rv-listado-platos mb-4">
+          <div className="rv-listado-cabecera">
+            <p className="rv-eyebrow mb-1">Ordine</p>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: '700', fontSize: '1.4rem' }}>
+              Detalle del pedido
+            </h3>
+          </div>
+          <div className="rv-listado-cuerpo">
+            <table className="table align-middle mb-0" style={{ marginBottom: 0 }}>
+              <thead>
+                <tr>
+                  <th style={{ fontFamily: 'var(--font-cuerpo)', fontSize: '0.72rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--rv-pomodoro)', border: 'none' }}>
+                    Producto
+                  </th>
+                  <th className="text-center" style={{ fontFamily: 'var(--font-cuerpo)', fontSize: '0.72rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--rv-pomodoro)', border: 'none' }}>
+                    Cantidad
+                  </th>
+                  <th className="text-end" style={{ fontFamily: 'var(--font-cuerpo)', fontSize: '0.72rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--rv-pomodoro)', border: 'none' }}>
+                    Subtotal
+                  </th>
+                  <th style={{ border: 'none' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((i) => (
+                  <tr key={i.platillo.id} style={{ borderBottom: '1px dashed rgba(43, 28, 14, 0.25)' }}>
+                    <td>
+                      <span className="rv-lista-nombre">{i.platillo.nombre}</span>
+                      <span className="rv-lista-italiano" style={{ display: 'block' }}>
+                        {formatearMoneda(i.platillo.precio)} c/u
+                      </span>
+                    </td>
+                    <td style={{ maxWidth: 110 }} className="text-center">
+                      <input
+                        type="number"
+                        min={1}
+                        className="form-control form-control-sm text-center"
+                        value={i.cantidad}
+                        onChange={(e) => cambiarCantidad(i.platillo.id, Number(e.target.value))}
+                        style={{ background: 'var(--rv-crema)', borderColor: 'rgba(43, 28, 14, 0.35)' }}
+                      />
+                    </td>
+                    <td className="text-end">
+                      <span className="rv-lista-precio">{formatearMoneda(i.platillo.precio * i.cantidad)}</span>
+                    </td>
+                    <td className="text-end">
+                      <button
+                        className="btn btn-sm"
+                        onClick={() => quitar(i.platillo.id)}
+                        style={{ color: 'var(--rv-pomodoro)', border: '1px solid rgba(184, 58, 38, 0.4)' }}
+                        title="Quitar"
+                      >
+                        <i className="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      )}
 
-      <table className="table align-middle">
-        <thead>
-          <tr>
-            <th>Producto</th>
-            <th className="text-center">Cantidad</th>
-            <th className="text-end">Precio unitario</th>
-            <th className="text-end">Subtotal</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((i) => (
-            <tr key={i.platillo.id}>
-              <td>{i.platillo.nombre}</td>
-              <td style={{ maxWidth: 110 }}>
-                <input
-                  type="number"
-                  min={1}
-                  className="form-control form-control-sm text-center"
-                  value={i.cantidad}
-                  onChange={(e) => cambiarCantidad(i.platillo.id, Number(e.target.value))}
-                />
-              </td>
-              <td className="text-end">{formatearMoneda(i.platillo.precio)}</td>
-              <td className="text-end">{formatearMoneda(i.platillo.precio * i.cantidad)}</td>
-              <td className="text-end">
-                <button className="btn btn-sm btn-outline-danger" onClick={() => quitar(i.platillo.id)}>
-                  <i className="bi bi-trash"></i>
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        {/* Observaciones */}
+        <div className="mb-4">
+          <label className="form-label" style={{ fontFamily: 'var(--font-cuerpo)', fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--rv-tinta-2)' }}>
+            Observaciones (opcional)
+          </label>
+          <textarea
+            className="form-control"
+            rows={2}
+            value={observaciones}
+            onChange={(e) => setObservaciones(e.target.value)}
+            placeholder="Ej: sin cebolla, término de la carne, alergias..."
+            style={{ background: 'var(--rv-crema)', borderColor: 'rgba(43, 28, 14, 0.35)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}
+          />
+        </div>
 
-      <div className="mb-3">
-        <label className="form-label">Observaciones (opcional)</label>
-        <textarea
-          className="form-control"
-          rows={2}
-          value={observaciones}
-          onChange={(e) => setObservaciones(e.target.value)}
-          placeholder="Ej: sin cebolla, término de la carne, alergias..."
-        />
-      </div>
-
-      <div className="d-flex justify-content-between align-items-center border-top pt-3">
-        <h4 className="mb-0">Total: {formatearMoneda(total)}</h4>
-        <div className="d-flex gap-2">
-          <Link href="/cliente/menu" className="btn btn-outline-secondary">
-            Seguir pidiendo
-          </Link>
-          <button className="btn btn-warning" onClick={handleConfirmar} disabled={enviando || sinMesa}>
-            {enviando ? 'Enviando...' : 'Confirmar y enviar pedido'}
-          </button>
+        {/* Total y acciones */}
+        <div className="rv-listado-platos">
+          <div className="rv-listado-cuerpo" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.1rem', margin: 0 }}>Totale</p>
+              <h4 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, margin: 0, fontSize: '1.8rem' }}>
+                {formatearMoneda(total)}
+              </h4>
+            </div>
+            <div className="d-flex gap-2 flex-wrap">
+              <Link href="/cliente/menu" className="rv-btn rv-btn-linea" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                <i className="bi bi-arrow-left"></i> Seguir pidiendo
+              </Link>
+              <button
+                className="rv-btn rv-btn-pomodoro"
+                style={{ padding: '0.5rem 1.2rem', fontSize: '0.85rem' }}
+                onClick={handleConfirmar}
+                disabled={enviando || sinMesa}
+              >
+                {enviando ? 'Enviando...' : 'Confirmar y enviar'}
+                {!enviando && <i className="bi bi-send"></i>}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

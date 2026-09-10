@@ -26,8 +26,16 @@ export default function MesasPage() {
   }
 
   return (
-    <div className="container py-5">
-      <h1 className="mb-4">Mesas</h1>
+    <div>
+      <div className="rv-panel-cabecera">
+        <div className="container">
+          <p className="rv-eyebrow rv-eyebrow-dark">Il sistema · tavoli</p>
+          <h1 className="rv-panel-nombre">Mesas <em>della sala</em></h1>
+          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>ogni tavolo è pronto — serve con calma</p>
+        </div>
+      </div>
+      <div className="container pb-4 pt-3">
+      <h2 className="mb-4" style={{ fontFamily: 'var(--font-display)' }}>Mesas</h2>
       {cargando ? (
         <p className="text-muted">Cargando mesas...</p>
       ) : (
@@ -64,6 +72,7 @@ export default function MesasPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

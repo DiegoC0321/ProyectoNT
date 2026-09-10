@@ -139,8 +139,16 @@ export default function PedidosMeseroPage() {
   const finalizados = pedidos.filter((p) => p.estado === 'ENTREGADO' || p.estado === 'CANCELADO');
 
   return (
-    <div className="container py-5" style={{ maxWidth: 800 }}>
-      <h1 className="mb-4">Pedidos</h1>
+    <div>
+      <div className="rv-panel-cabecera">
+        <div className="container">
+          <p className="rv-eyebrow rv-eyebrow-dark">Il sistema · ordini</p>
+          <h1 className="rv-panel-nombre">Pedidos <em>della sala</em></h1>
+          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>ogni ordine è pronto — serve con calma</p>
+        </div>
+      </div>
+      <div className="container pb-4 pt-3" style={{ maxWidth: 800 }}>
+      <h2 className="mb-4" style={{ fontFamily: 'var(--font-display)' }}>Pedidos</h2>
       {error && <div className="alert alert-danger">{error}</div>}
       {mensaje && <div className="alert alert-success">{mensaje}</div>}
 
@@ -282,6 +290,7 @@ export default function PedidosMeseroPage() {
       ) : (
         finalizados.map((p) => <PedidoCard key={p.id} pedido={p} />)
       )}
+      </div>
     </div>
   );
 }

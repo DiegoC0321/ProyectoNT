@@ -1,33 +1,89 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Cormorant_Garamond, Caveat, Work_Sans } from 'next/font/google';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import Navbar from '@/components/Navbar';
+import AccesoEmpleados from '@/components/AccesoEmpleados';
 import BootstrapClient from '@/components/BootstrapClient';
 
+const garamond = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-garamond',
+  display: 'swap',
+});
+
+const caveat = Caveat({
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+  variable: '--font-caveat',
+  display: 'swap',
+});
+
+const workSans = Work_Sans({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600'],
+  variable: '--font-work',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'Sistema de Gestión de Restaurante Inteligente',
-  description: 'Menú digital, pedidos, recomendaciones con IA y administración para restaurantes.',
+  title: 'Trattoria del Vicolo — Cucina italiana dal 1987',
+  description:
+    'Trattoria italiana de verdad: pasta fresca hecha a mano, vino de la casa y pedidos desde la mesa con menú digital.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="es" className={`${garamond.variable} ${caveat.variable} ${workSans.variable}`}>
       <body>
         <AuthProvider>
           <CartProvider>
             <Navbar />
             <main className="min-vh-100">{children}</main>
-            <footer className="bg-dark text-light text-center py-3 mt-5 small">
+            <footer className="rv-footer">
               <div className="container">
-                <div>Sistema de Gestión de Restaurante Inteligente &copy; {new Date().getFullYear()}</div>
-                <div className="mt-2">
-                  <Link href="/login" className="text-secondary text-decoration-none">
-                    <i className="bi bi-person-badge"></i> Acceso para empleados
-                  </Link>
+                <div className="rv-footer-top">
+                  <div>
+                    <p className="rv-footer-marca">
+                      Trattoria <em>del Vicolo</em>
+                    </p>
+                    <p className="rv-footer-tagline">Cucina italiana dal 1987 · Toscana</p>
+                  </div>
+                  <div className="rv-footer-col">
+                    <p className="rv-footer-titulo">Dove siamo</p>
+                    <p>
+                      Via dei Fiori, 12
+                      <br />
+                      Firenze — Toscana
+                    </p>
+                  </div>
+                  <div className="rv-footer-col">
+                    <p className="rv-footer-titulo">Orario</p>
+                    <p>
+                      Lun – Dom
+                      <br />
+                      12:00 – 23:00
+                    </p>
+                  </div>
+                  <div className="rv-footer-col">
+                    <p className="rv-footer-titulo">Il sistema</p>
+                    <p className="rv-footer-links">
+                      <Link href="/menu">Menú digital</Link>
+                      <AccesoEmpleados className="" />
+                    </p>
+                  </div>
+                </div>
+                <div className="rv-footer-bottom">
+                  <span>Trattoria del Vicolo &copy; {new Date().getFullYear()}</span>
+                  <span className="rv-footer-fatto">
+                    Fatto con amore <i className="bi bi-heart-fill"></i>
+                  </span>
                 </div>
               </div>
             </footer>

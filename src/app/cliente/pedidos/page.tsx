@@ -27,7 +27,7 @@ export default function MisPedidosPage() {
 
   useEffect(() => {
     cargar();
-    const intervalo = setInterval(cargar, 8000); // RF05: refresco automático del seguimiento
+    const intervalo = setInterval(cargar, 8000);
     return () => clearInterval(intervalo);
   }, [cargar]);
 
@@ -55,50 +55,99 @@ export default function MisPedidosPage() {
   const historial = pedidos.filter((p) => p.estado === 'ENTREGADO' || p.estado === 'CANCELADO');
 
   return (
-    <div className="container py-5" style={{ maxWidth: 800 }}>
-      <h1 className="mb-4">Mis pedidos</h1>
-      {error && <div className="alert alert-danger">{error}</div>}
-      {mensaje && <div className="alert alert-success">{mensaje}</div>}
+    <div>
+      <section className="rv-menu-cabecera" style={{ padding: '2.5rem 0' }}>
+        <div className="container">
+          <p className="rv-eyebrow rv-eyebrow-claro">I tuoi ordini</p>
+          <h1 className="rv-menu-marca">Mis <span>Pedidos</span></h1>
+          <p className="rv-menu-sub">stato del tuo ordine — segui la cucina</p>
+        </div>
+      </section>
 
-      <h4 className="mb-3">Seguimiento activo</h4>
-      {cargando ? (
-        <p className="text-muted">Cargando...</p>
-      ) : activos.length === 0 ? (
-        <p className="text-muted">No tienes pedidos activos en este momento.</p>
-      ) : (
-        activos.map((p) => (
-          <PedidoCard
-            key={p.id}
-            pedido={p}
-            acciones={
-              !p.confirmado ? (
-                <button className="btn btn-sm btn-outline-danger" onClick={() => handleCancelar(p.id)}>
-                  Cancelar
-                </button>
-              ) : undefined
-            }
-          />
-        ))
-      )}
+      <div className="container py-4" style={{ maxWidth: 800 }}>
+        {error && (
+          <div className="rv-card-panel d-flex align-items-center gap-2 p-3 mb-4" style={{ background: 'var(--rv-crema)', borderLeft: '4px solid var(--rv-pomodoro)' }}>
+            <i className="bi bi-exclamation-triangle" style={{ color: 'var(--rv-pomodoro)', fontSize: '1.3rem' }}></i>
+            <span>{error}</span>
+          </div>
+        )}
+        {mensaje && (
+          <div className="rv-card-panel d-flex align-items-center gap-2 p-3 mb-4" style={{ background: 'var(--rv-crema)', borderLeft: '4px solid var(--rv-oliva)' }}>
+            <i className="bi bi-check-circle" style={{ color: 'var(--rv-oliva)', fontSize: '1.3rem' }}></i>
+            <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>{mensaje}</span>
+          </div>
+        )}
 
-      <h4 className="mt-5 mb-3">Historial</h4>
-      {historial.length === 0 ? (
-        <p className="text-muted">Aún no tienes pedidos anteriores.</p>
-      ) : (
-        historial.map((p) => (
-          <PedidoCard
-            key={p.id}
-            pedido={p}
-            acciones={
-              p.estado === 'ENTREGADO' && !esInvitado ? (
-                <button className="btn btn-sm btn-warning" onClick={() => handleRepetir(p.id)}>
-                  <i className="bi bi-arrow-repeat"></i> Repetir pedido
-                </button>
-              ) : undefined
-            }
-          />
-        ))
-      )}
+        {/* Seguimiento activo */}
+        <div className="rv-listado-platos mb-5">
+          <div className="rv-listado-cabecera">
+            <p className="rv-eyebrow mb-1">Ordini attivi</p>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: '700', fontSize: '1.4rem' }}>
+              Seguimiento activo
+            </h3>
+          </div>
+          <div className="rv-listado-cuerpo">
+            {cargando ? (
+              <div className="text-center py-3">
+                <div className="spinner-border text-warning" role="status" />
+              </div>
+            ) : activos.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
+                <span className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem' }}>
+                  nessun ordine attivo — che cosa vuoi ordinare?
+                </span>
+              </div>
+            ) : (
+              activos.map((p) => (
+                <PedidoCard
+                  key={p.id}
+                  pedido={p}
+                  acciones={
+                    !p.confirmado ? (
+                      <button className="btn btn-sm btn-outline-danger" onClick={() => handleCancelar(p.id)}>
+                        Cancelar
+                      </button>
+                    ) : undefined
+                  }
+                />
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Historial */}
+        <div className="rv-listado-platos">
+          <div className="rv-listado-cabecera">
+            <p className="rv-eyebrow mb-1">Storico</p>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: '700', fontSize: '1.4rem' }}>
+              Historial
+            </h3>
+          </div>
+          <div className="rv-listado-cuerpo">
+            {historial.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
+                <span className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem' }}>
+                  aun no hay pedidos anteriores
+                </span>
+              </div>
+            ) : (
+              historial.map((p) => (
+                <PedidoCard
+                  key={p.id}
+                  pedido={p}
+                  acciones={
+                    p.estado === 'ENTREGADO' && !esInvitado ? (
+                      <button className="rv-btn rv-btn-pomodoro" style={{ padding: '0.35rem 0.8rem', fontSize: '0.8rem' }} onClick={() => handleRepetir(p.id)}>
+                        <i className="bi bi-arrow-repeat"></i> Repetir
+                      </button>
+                    ) : undefined
+                  }
+                />
+              ))
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

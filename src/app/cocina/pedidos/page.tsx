@@ -36,8 +36,16 @@ export default function PedidosCocinaPage() {
   }
 
   return (
-    <div className="container py-5">
-      <h1 className="mb-4">Pedidos entrantes</h1>
+    <div>
+      <div className="rv-panel-cabecera">
+        <div className="container">
+          <p className="rv-eyebrow rv-eyebrow-dark">Il sistema · cucina</p>
+          <h1 className="rv-panel-nombre">Pedidos <em>entrantes</em></h1>
+          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>ogni ordine è pronto — serve senza fretta</p>
+        </div>
+      </div>
+      <div className="container pb-4 pt-3">
+      <h2 className="mb-4" style={{ fontFamily: 'var(--font-display)' }}>Pedidos entrantes</h2>
       {error && <div className="alert alert-danger">{error}</div>}
 
       {cargando ? (
@@ -78,6 +86,7 @@ export default function PedidosCocinaPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

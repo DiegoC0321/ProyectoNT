@@ -1,81 +1,127 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { reportService, ResumenVentas } from '@/services/otherServices';
+import { useAuth } from '@/context/AuthContext';
+import { reportService } from '@/services/otherServices';
 import { formatearMoneda } from '@/utils/format';
-import BarChartSimple from '@/components/BarChartSimple';
 
-export default function AdminVentasPage() {
-  const [resumen, setResumen] = useState<ResumenVentas | null>(null);
-  const [cargando, setCargando] = useState(true);
+interface ResumenHoy {
+  ventas: { total: number; pedidos: number };
+}
+
+export default function AdminDashboardPage() {
+  const { usuario } = useAuth();
+  const [resumen, setResumen] = useState<ResumenHoy | null>(null);
 
   useEffect(() => {
-    reportService.resumen().then(setResumen).finally(() => setCargando(false));
+    const hoy = new Date().toISOString().slice(0, 10);
+    reportService
+      .porPeriodo(hoy, hoy)
+      .then((data: any) => setResumen({ ventas: data.ventas }))
+      .catch(() => {});
   }, []);
 
-  if (cargando) return <div className="container py-5 text-muted">Cargando panel de ventas...</div>;
-  if (!resumen) return <div className="container py-5 text-danger">No se pudo cargar el resumen de ventas.</div>;
-
   return (
-    <div className="container py-5">
-      <h1 className="mb-4">Panel de control de ventas</h1>
-
-      <div className="row g-4 mb-4">
-        <div className="col-md-3">
-          <div className="card shadow-sm p-3 text-center">
-            <p className="text-muted mb-1">Ventas de hoy</p>
-            <h3>{formatearMoneda(resumen.ventas_dia.total)}</h3>
-            <p className="small text-muted mb-0">{resumen.ventas_dia.pedidos} pedidos</p>
-          </div>
-        </div>
-        <div className="col-md-3">
-          <div className="card shadow-sm p-3 text-center">
-            <p className="text-muted mb-1">Ventas de la semana</p>
-            <h3>{formatearMoneda(resumen.ventas_semana.total)}</h3>
-            <p className="small text-muted mb-0">{resumen.ventas_semana.pedidos} pedidos</p>
-          </div>
-        </div>
-        <div className="col-md-3">
-          <div className="card shadow-sm p-3 text-center">
-            <p className="text-muted mb-1">Ventas del mes</p>
-            <h3>{formatearMoneda(resumen.ventas_mes.total)}</h3>
-            <p className="small text-muted mb-0">{resumen.ventas_mes.pedidos} pedidos</p>
-          </div>
-        </div>
-        <div className="col-md-3">
-          <div className="card shadow-sm p-3 text-center">
-            <p className="text-muted mb-1">Total histórico de pedidos</p>
-            <h3>{resumen.total_pedidos_historico}</h3>
-          </div>
+    <div>
+      <div className="rv-panel-cabecera">
+        <div className="container">
+          <p className="rv-eyebrow rv-eyebrow-dark">Il sistema · il cassaio</p>
+          <h1 className="rv-panel-nombre">
+            <em>{usuario?.nombre ?? 'Admin'}</em>
+          </h1>
+          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.5rem', margin: '0.7rem 0 0' }}>
+            ogni giorno, un bilancio — ogni sera, un conto
+          </p>
         </div>
       </div>
 
-      <div className="row g-4">
-        <div className="col-lg-6">
-          <div className="card shadow-sm p-4 h-100">
-            <h5 className="mb-3">Productos más vendidos</h5>
-            {resumen.productos_mas_vendidos.length === 0 ? (
-              <p className="text-muted">Aún no hay ventas registradas.</p>
-            ) : (
-              <BarChartSimple
-                datos={resumen.productos_mas_vendidos.map((p) => ({ etiqueta: p.nombre, valor: p.unidades_vendidas }))}
-                formato={(v) => `${v} unidades`}
-              />
-            )}
+      <div className="container pb-4">
+        {/* Resumen del día */}
+        {resumen && (
+          <div className="rv-listado-platos mb-4" style={{ maxWidth: 500, margin: '1.5rem auto' }}>
+            <div className="rv-listado-cabecera">
+              <p className="rv-eyebrow mb-1">Riassunto oggi</p>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: '700', fontSize: '1.3rem' }}>
+                Resumen del día
+              </h3>
+            </div>
+            <div className="rv-listado-cuerpo" style={{ textAlign: 'center', padding: '1.5rem' }}>
+              <p className="rv-mano rv-mano-pomodoro" style={{ fontSize: '1.2rem', margin: '0 0 0.5rem' }}>Vendite</p>
+              <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '2rem', margin: 0 }}>
+                {formatearMoneda(resumen.ventas.total)}
+              </p>
+              <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--rv-tinta-2)', margin: '0.3rem 0 0' }}>
+                {resumen.ventas.pedidos} pedidos hoy
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Accesos rápidos */}
+        <div className="rv-mano rv-mano-pomodoro" style={{ fontSize: '1.5rem', textAlign: 'center', margin: '2rem 0 1rem', transform: 'rotate(-1.5deg)' }}>
+          accedi rapidamente — ogni cosa è a portata di mano
+        </div>
+
+        <div className="row g-4">
+          <div className="col-md-6 col-lg-3">
+            <Link href="/admin/menu" className="text-decoration-none">
+              <div className="rv-card-panel shadow-sm text-center h-100">
+                <div className="card-body">
+                  <div className="d-flex justify-content-center mb-3" style={{ fontSize: '2rem' }}>
+                    <i className="bi bi-book" style={{ color: 'var(--rv-pomodoro)' }}></i>
+                  </div>
+                  <p className="rv-eyebrow rv-eyebrow-dark">Menù</p>
+                  <h3 className="card-title" style={{ fontSize: '1.1rem' }}>Gestionar carta</h3>
+                </div>
+              </div>
+            </Link>
+          </div>
+          <div className="col-md-6 col-lg-3">
+            <Link href="/admin/inventario" className="text-decoration-none">
+              <div className="rv-card-panel shadow-sm text-center h-100">
+                <div className="card-body">
+                  <div className="d-flex justify-content-center mb-3" style={{ fontSize: '2rem' }}>
+                    <i className="bi bi-box-seam" style={{ color: 'var(--rv-oliva)' }}></i>
+                  </div>
+                  <p className="rv-eyebrow rv-eyebrow-dark">Inventario</p>
+                  <h3 className="card-title" style={{ fontSize: '1.1rem' }}>Controlar stock</h3>
+                </div>
+              </div>
+            </Link>
+          </div>
+          <div className="col-md-6 col-lg-3">
+            <Link href="/admin/usuarios" className="text-decoration-none">
+              <div className="rv-card-panel shadow-sm text-center h-100">
+                <div className="card-body">
+                  <div className="d-flex justify-content-center mb-3" style={{ fontSize: '2rem' }}>
+                    <i className="bi bi-people" style={{ color: 'var(--rv-oro)' }}></i>
+                  </div>
+                  <p className="rv-eyebrow rv-eyebrow-dark">Usuarios</p>
+                  <h3 className="card-title" style={{ fontSize: '1.1rem' }}>Personal</h3>
+                </div>
+              </div>
+            </Link>
+          </div>
+          <div className="col-md-6 col-lg-3">
+            <Link href="/admin/reportes" className="text-decoration-none">
+              <div className="rv-card-panel shadow-sm text-center h-100">
+                <div className="card-body">
+                  <div className="d-flex justify-content-center mb-3" style={{ fontSize: '2rem' }}>
+                    <i className="bi bi-bar-chart" style={{ color: 'var(--rv-vino)' }}></i>
+                  </div>
+                  <p className="rv-eyebrow rv-eyebrow-dark">Reportes</p>
+                  <h3 className="card-title" style={{ fontSize: '1.1rem' }}>Ver reportes</h3>
+                </div>
+              </div>
+            </Link>
           </div>
         </div>
-        <div className="col-lg-6">
-          <div className="card shadow-sm p-4 h-100">
-            <h5 className="mb-3">Ventas de los últimos 7 días</h5>
-            {resumen.ventas_ultimos_7_dias.length === 0 ? (
-              <p className="text-muted">Sin datos suficientes.</p>
-            ) : (
-              <BarChartSimple
-                datos={resumen.ventas_ultimos_7_dias.map((v) => ({ etiqueta: v.fecha, valor: v.total }))}
-                formato={(v) => formatearMoneda(v)}
-              />
-            )}
-          </div>
+
+        <div className="text-center mt-4">
+          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.25rem', transform: 'rotate(-1deg)' }}>
+            il ritorno della trattoria — ogni giorno, con la stessa calma
+          </p>
         </div>
       </div>
     </div>

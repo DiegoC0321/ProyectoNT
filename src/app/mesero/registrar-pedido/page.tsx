@@ -81,8 +81,16 @@ function RegistrarPedidoContent() {
   }
 
   return (
-    <div className="container py-5">
-      <h1 className="mb-4">Registrar pedido</h1>
+    <div>
+      <div className="rv-panel-cabecera">
+        <div className="container">
+          <p className="rv-eyebrow rv-eyebrow-dark">Il sistema · ordine</p>
+          <h1 className="rv-panel-nombre">Registrar <em>pedido</em></h1>
+          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>ogni tavolo ha fame — serve rapidamente</p>
+        </div>
+      </div>
+      <div className="container pb-4 pt-3">
+      <h2 className="mb-4" style={{ fontFamily: 'var(--font-display)' }}>Registrar pedido</h2>
       {error && <div className="alert alert-danger">{error}</div>}
       {mensaje && <div className="alert alert-success">{mensaje}</div>}
 
@@ -165,6 +173,7 @@ function RegistrarPedidoContent() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

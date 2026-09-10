@@ -8,3 +8,6 @@ data/
 .env.local
 npm-debug.log*
 .DS_Store
+
+.freebuff/
+tsconfig.tsbuildinfo

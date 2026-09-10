@@ -51,13 +51,21 @@ export default function InventarioPage() {
   const bajoStock = inventario.filter((i) => i.bajo_stock);
 
   return (
-    <div className="container py-5">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="mb-0">Inventario</h1>
-        <button className="btn btn-warning" onClick={() => setMostrarForm((v) => !v)}>
-          <i className="bi bi-plus-lg"></i> Registrar insumo
-        </button>
+    <div>
+      <div className="rv-panel-cabecera">
+        <div className="container">
+          <p className="rv-eyebrow rv-eyebrow-dark">Il sistema · inventario</p>
+          <h1 className="rv-panel-nombre">Inventario <em>della cucina</em></h1>
+          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>controlla gli ingredienti — ogni giorno, prima di aprire</p>
+        </div>
       </div>
+      <div className="container pb-4 pt-3">
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h2 className="mb-0" style={{ fontFamily: 'var(--font-display)' }}>Ingredientes</h2>
+          <button className="rv-btn rv-btn-pomodoro" onClick={() => setMostrarForm((v) => !v)}>
+            <i className="bi bi-plus-lg"></i> Registrar insumo
+          </button>
+        </div>
 
       {error && <div className="alert alert-danger">{error}</div>}
 
@@ -145,6 +153,7 @@ export default function InventarioPage() {
           </tbody>
         </table>
       )}
+      </div>
     </div>
   );
 }
