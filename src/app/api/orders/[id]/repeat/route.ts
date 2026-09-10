@@ -12,7 +12,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   if ('error' in auth) return auth.error;
 
   try {
-    const pedido = repetirPedido(Number(params.id), auth.user.sub);
+    const pedido = await repetirPedido(Number(params.id), auth.user.sub);
     return NextResponse.json({ pedido }, { status: 201 });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });

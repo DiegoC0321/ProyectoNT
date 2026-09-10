@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email y password son obligatorios.' }, { status: 400 });
     }
 
-    const { usuario, token } = iniciarSesion(email, password);
+    const { usuario, token } = await iniciarSesion(email, password);
 
     const response = NextResponse.json({ usuario, token });
     response.cookies.set('token', token, {

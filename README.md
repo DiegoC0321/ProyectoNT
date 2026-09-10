@@ -49,15 +49,15 @@ datos directamente. Esto permite:
 | Frontend / UI      | React + Bootstrap 5 + Bootstrap Icons         |
 | Autenticación      | JWT (`jsonwebtoken`) + cookies httpOnly       |
 | Contraseñas        | `bcryptjs` (hash + salt)                      |
-| Base de datos      | SQLite relacional (`better-sqlite3`)          |
+| Base de datos      | PostgreSQL en la nube (Supabase) — `pg` |
 | Comunicación       | API REST (rutas `src/app/api/**`)             |
 | IA (recomendaciones)| Módulo propio, listo para integrarse con un LLM |
 
-> La base de datos se implementó en **SQLite** (relacional, con claves
-> primarias/foráneas, restricciones `CHECK` y relaciones 1:N y N:M) para que el
-> proyecto pueda ejecutarse sin instalar un servidor de base de datos externo.
-> Gracias a que toda la lógica de acceso a datos vive en `src/controllers/**`,
-> migrar a PostgreSQL/MySQL en el futuro solo implica cambiar `src/lib/db.ts`.
+> La base de datos es **PostgreSQL** alojado en **Supabase** (relacional, con
+> claves primarias/foráneas, restricciones `CHECK` y relaciones 1:N y N:M). Toda
+> la lógica de acceso a datos vive en `src/controllers/**` sobre un adaptador
+> en `src/lib/db.ts` (`pg`), por lo que el esquema y los queries están
+> normalizados en `supabase/schema.sql`.
 
 ---
 
@@ -82,10 +82,11 @@ restaurant-system/
 │   ├── middleware/                 # auth.ts (JWT + autorización por rol)
 │   ├── models/                     # Tipos TypeScript (entidades)
 │   ├── services/                   # Clientes fetch tipados hacia la API REST
-│   ├── lib/                        # db.ts, jwt.ts, schema.sql, seed.ts
+│   ├── lib/                        # db.ts (adaptador pg), jwt.ts
 │   ├── utils/                      # Formateo de moneda, fechas, badges
 │   └── types/                      # Declaraciones .d.ts auxiliares
-├── data/                           # Archivo restaurante.db (se genera solo)
+├── supabase/                       # schema.sql (PostgreSQL para Supabase)
+├── scripts/                        # db-setup.mjs (aplica esquema + seed)
 ├── public/img/                     # Imágenes estáticas de ejemplo
 ├── .env.example
 ├── package.json
@@ -269,10 +270,9 @@ de extremo a extremo. Se diseñó con un contrato estable
 ## 10. Instalación y ejecución
 
 ### Requisitos previos
-- Node.js **20 LTS** (recomendado: las versiones de Node superiores a 20 no
-  tienen binarios precompilados para `better-sqlite3` y exigen Visual Studio
-  C++ para compilarse desde fuente)
+- Node.js **>= 18** (probado con Node 24)
 - npm
+- Un proyecto de **Supabase** (gratis): https://supabase.com/dashboard
 
 ### Pasos
 
@@ -282,16 +282,23 @@ npm install
 
 # 2. Copiar variables de entorno
 cp .env.example .env.local
+#   -> reemplaza DATABASE_URL por la cadena de conexión de tu Supabase
+#   (Supabase Dashboard -> Project Settings -> Database -> Connection string;
+#    recomienda el pooler transaccional puerto 6543)
 
-# 3. Levantar el entorno de desarrollo
+# 3. Preparar la base de datos en Supabase (crea el esquema + datos demo)
+npm run db:setup
+
+# 4. Levantar el entorno de desarrollo
 npm run dev
 ```
 
 La aplicación estará disponible en `http://localhost:3000`.
 
-La primera vez que se ejecuta, el sistema crea automáticamente el archivo
-`data/restaurante.db`, ejecuta el esquema SQL y carga datos de demostración
-(usuarios, menú, mesas e inventario).
+`npm run db:setup` aplica `supabase/schema.sql` (idempotente, `IF NOT EXISTS`)
+y carga los datos de demostración solo si las tablas están vacías (usuarios,
+menú, mesas e inventario). También se puede ejecutar el SQL manualmente desde
+el **SQL Editor** del dashboard de Supabase.
 
 ### Compilar para producción
 
@@ -371,7 +378,7 @@ pendiente o mejorable desde una perspectiva de desarrollo de largo plazo:
 | # | Fase | Estado | Evaluación y recomendaciones |
 |---|------|--------|------------------------------|
 | 1 | Proyecto Next.js + TS + Bootstrap + estructura MVW | ✅ Implementada | Correcta y bien adaptada a App Router: los controladores solo corren en servidor y el frontend habla con el backend vía `src/services/*` tipados. Mejorable: aprovechar más Server Components para reducir JS en cliente y estado global. |
-| 2 | Base de datos + modelos | ✅ Implementada | Esquema relacional normalizado (PK/FK, `CHECK`, índices, auditoría, relación N:M). Sin sistema de migraciones (`schema.sql` + `IF NOT EXISTS`): suficiente para el alcance, pero un proyecto mayor usaría migraciones versionadas. Requiere Node 20 para los binarios precompilados de `better-sqlite3`. |
+| 2 | Base de datos + modelos | ✅ Implementada | Esquema relacional normalizado (PK/FK, `CHECK`, índices, auditoría, relación N:M) en **PostgreSQL (Supabase)** mediante `supabase/schema.sql`. Migrado desde SQLite: controllers asíncronos sobre `pg`. Mejorable: migraciones versionadas (p. ej. `supabase migrations`) en lugar de un único script idempotente. |
 | 3 | API REST | ✅ Implementada | Recursos y verbos correctos, capa de controladores limpia, errores consistentes `{ error }`. Pendiente: validación centralizada (`zod` está instalado pero sin uso), esquema de respuesta tipado y paginación (aceptable a esta escala). |
 | 4 | JWT + roles y permisos | ✅ Implementada | Doble capa ejecutada con rigor: frontend (UX) y backend (barrera real) con `requireAuth`/`requireRole`; transiciones de pedido modeladas como máquina de estados; `bcrypt` cost 10; cookie `httpOnly` + `sameSite: lax`. Riesgos: `JWT_SECRET` con fallback en dev (forzar variable en producción), añadir `Secure` en HTTPS y rate-limit en `/api/auth/login`. |
 | 5 | Módulo cliente | ✅ Implementada | RF02–RF06 cubiertos: menú, carrito, seguimiento, repetir pedido y recomendaciones. |

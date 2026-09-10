@@ -1,9 +1,8 @@
-import { getDb } from '@/lib/db';
+import { q, qOne, qRun, qInsert } from '@/lib/db';
 import type { Platillo, Categoria } from '@/models/types';
 
 /** RF01 — Consulta de menú digital (público) */
-export function listarPlatillos(opts: { soloDisponibles?: boolean; categoriaId?: number } = {}): Platillo[] {
-  const db = getDb();
+export async function listarPlatillos(opts: { soloDisponibles?: boolean; categoriaId?: number } = {}): Promise<Platillo[]> {
   let query = `
     SELECT p.*, c.nombre as categoria_nombre
     FROM platillo p LEFT JOIN categoria c ON c.id = p.categoria_id
@@ -11,7 +10,7 @@ export function listarPlatillos(opts: { soloDisponibles?: boolean; categoriaId?:
   const params: unknown[] = [];
 
   if (opts.soloDisponibles) {
-    query += ' AND p.disponible = 1';
+    query += ' AND p.disponible = true';
   }
   if (opts.categoriaId) {
     query += ' AND p.categoria_id = ?';
@@ -19,49 +18,45 @@ export function listarPlatillos(opts: { soloDisponibles?: boolean; categoriaId?:
   }
   query += ' ORDER BY p.categoria_id, p.nombre';
 
-  return db.prepare(query).all(...params) as Platillo[];
+  return q<Platillo>(query, params);
 }
 
-export function obtenerPlatillo(id: number): Platillo {
-  const db = getDb();
-  const row = db
-    .prepare(
-      `SELECT p.*, c.nombre as categoria_nombre
-       FROM platillo p LEFT JOIN categoria c ON c.id = p.categoria_id
-       WHERE p.id = ?`
-    )
-    .get(id) as Platillo | undefined;
+export async function obtenerPlatillo(id: number): Promise<Platillo> {
+  const row = await qOne<Platillo>(
+    `SELECT p.*, c.nombre as categoria_nombre
+     FROM platillo p LEFT JOIN categoria c ON c.id = p.categoria_id
+     WHERE p.id = ?`,
+    [id]
+  );
   if (!row) throw new Error('Platillo no encontrado.');
   return row;
 }
 
 /** RF14 — Gestión del menú (administrador) */
-export function crearPlatillo(data: {
+export async function crearPlatillo(data: {
   nombre: string;
   descripcion?: string;
   precio: number;
   imagen_url?: string;
   categoria_id?: number | null;
   disponible?: boolean;
-}) {
-  const db = getDb();
-  const info = db
-    .prepare(
-      `INSERT INTO platillo (nombre, descripcion, precio, imagen_url, disponible, categoria_id)
-       VALUES (?, ?, ?, ?, ?, ?)`
-    )
-    .run(
+}): Promise<Platillo> {
+  const id = await qInsert(
+    `INSERT INTO platillo (nombre, descripcion, precio, imagen_url, disponible, categoria_id)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [
       data.nombre,
       data.descripcion ?? null,
       data.precio,
       data.imagen_url ?? null,
-      data.disponible === false ? 0 : 1,
-      data.categoria_id ?? null
-    );
-  return obtenerPlatillo(Number(info.lastInsertRowid));
+      data.disponible ?? true,
+      data.categoria_id ?? null,
+    ]
+  );
+  return obtenerPlatillo(id);
 }
 
-export function actualizarPlatillo(
+export async function actualizarPlatillo(
   id: number,
   data: Partial<{
     nombre: string;
@@ -71,48 +66,47 @@ export function actualizarPlatillo(
     categoria_id: number | null;
     disponible: boolean;
   }>
-) {
-  const db = getDb();
-  const actual = obtenerPlatillo(id);
+): Promise<Platillo> {
+  const actual = await obtenerPlatillo(id);
 
-  db.prepare(
-    `UPDATE platillo SET nombre = ?, descripcion = ?, precio = ?, imagen_url = ?, categoria_id = ?, disponible = ?, updated_at = datetime('now')
-     WHERE id = ?`
-  ).run(
-    data.nombre ?? actual.nombre,
-    data.descripcion ?? actual.descripcion,
-    data.precio ?? actual.precio,
-    data.imagen_url ?? actual.imagen_url,
-    data.categoria_id !== undefined ? data.categoria_id : actual.categoria_id,
-    data.disponible !== undefined ? (data.disponible ? 1 : 0) : actual.disponible,
-    id
+  await qRun(
+    `UPDATE platillo SET nombre = ?, descripcion = ?, precio = ?, imagen_url = ?, categoria_id = ?, disponible = ?, updated_at = NOW()
+     WHERE id = ?`,
+    [
+      data.nombre ?? actual.nombre,
+      data.descripcion ?? actual.descripcion,
+      data.precio ?? actual.precio,
+      data.imagen_url ?? actual.imagen_url,
+      data.categoria_id !== undefined ? data.categoria_id : actual.categoria_id,
+      data.disponible === undefined ? actual.disponible : data.disponible,
+      id,
+    ]
   );
 
   return obtenerPlatillo(id);
 }
 
-export function eliminarPlatillo(id: number) {
-  const db = getDb();
-  db.prepare('DELETE FROM platillo WHERE id = ?').run(id);
+export async function eliminarPlatillo(id: number) {
+  await qRun('DELETE FROM platillo WHERE id = ?', [id]);
 }
 
-export function alternarDisponibilidad(id: number) {
-  const db = getDb();
-  const actual = obtenerPlatillo(id);
-  db.prepare(`UPDATE platillo SET disponible = ?, updated_at = datetime('now') WHERE id = ?`).run(
-    actual.disponible ? 0 : 1,
-    id
-  );
+export async function alternarDisponibilidad(id: number): Promise<Platillo> {
+  const actual = await obtenerPlatillo(id);
+  await qRun('UPDATE platillo SET disponible = ?, updated_at = NOW() WHERE id = ?', [
+    !actual.disponible,
+    id,
+  ]);
   return obtenerPlatillo(id);
 }
 
-export function listarCategorias(): Categoria[] {
-  const db = getDb();
-  return db.prepare('SELECT * FROM categoria ORDER BY nombre').all() as Categoria[];
+export async function listarCategorias(): Promise<Categoria[]> {
+  return q<Categoria>('SELECT * FROM categoria ORDER BY nombre');
 }
 
-export function crearCategoria(nombre: string, descripcion?: string) {
-  const db = getDb();
-  const info = db.prepare('INSERT INTO categoria (nombre, descripcion) VALUES (?, ?)').run(nombre, descripcion ?? null);
-  return db.prepare('SELECT * FROM categoria WHERE id = ?').get(Number(info.lastInsertRowid)) as Categoria;
+export async function crearCategoria(nombre: string, descripcion?: string): Promise<Categoria> {
+  const id = await qInsert('INSERT INTO categoria (nombre, descripcion) VALUES (?, ?)', [
+    nombre,
+    descripcion ?? null,
+  ]);
+  return (await qOne<Categoria>('SELECT * FROM categoria WHERE id = ?', [id])) as Categoria;
 }

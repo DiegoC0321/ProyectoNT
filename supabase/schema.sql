@@ -1,15 +1,15 @@
 -- =========================================================
 -- Sistema de Gestión de Restaurante Inteligente
--- Esquema de base de datos relacional (SQLite)
+-- Esquema de base de datos relacional para PostgreSQL (Supabase)
+-- Ejecutar en: Supabase Dashboard -> SQL Editor
+-- idempotente: todas las sentencias usan IF NOT EXISTS
 -- =========================================================
-
-PRAGMA foreign_keys = ON;
 
 -- -------------------------------------------------
 -- Roles
 -- -------------------------------------------------
 CREATE TABLE IF NOT EXISTS rol (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  id          SERIAL PRIMARY KEY,
   nombre      TEXT NOT NULL UNIQUE CHECK (nombre IN ('CLIENTE','MESERO','COCINA','ADMINISTRADOR'))
 );
 
@@ -17,14 +17,14 @@ CREATE TABLE IF NOT EXISTS rol (
 -- Usuarios
 -- -------------------------------------------------
 CREATE TABLE IF NOT EXISTS usuario (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  id            SERIAL PRIMARY KEY,
   nombre        TEXT NOT NULL,
   email         TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
   rol_id        INTEGER NOT NULL,
-  activo        INTEGER NOT NULL DEFAULT 1 CHECK (activo IN (0,1)),
-  created_at    TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at    TEXT NOT NULL DEFAULT (datetime('now')),
+  activo        BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   FOREIGN KEY (rol_id) REFERENCES rol(id)
 );
 
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS usuario (
 -- Categorías del menú
 -- -------------------------------------------------
 CREATE TABLE IF NOT EXISTS categoria (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  id          SERIAL PRIMARY KEY,
   nombre      TEXT NOT NULL UNIQUE,
   descripcion TEXT
 );
@@ -41,15 +41,15 @@ CREATE TABLE IF NOT EXISTS categoria (
 -- Platillos (menú digital) - RF01 / RF14
 -- -------------------------------------------------
 CREATE TABLE IF NOT EXISTS platillo (
-  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  id           SERIAL PRIMARY KEY,
   nombre       TEXT NOT NULL,
   descripcion  TEXT,
-  precio       REAL NOT NULL CHECK (precio >= 0),
+  precio       NUMERIC NOT NULL CHECK (precio >= 0),
   imagen_url   TEXT,
-  disponible   INTEGER NOT NULL DEFAULT 1 CHECK (disponible IN (0,1)),
+  disponible   BOOLEAN NOT NULL DEFAULT TRUE,
   categoria_id INTEGER,
-  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   FOREIGN KEY (categoria_id) REFERENCES categoria(id)
 );
 
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS platillo (
 -- Mesas - RF08
 -- -------------------------------------------------
 CREATE TABLE IF NOT EXISTS mesa (
-  id        INTEGER PRIMARY KEY AUTOINCREMENT,
+  id        SERIAL PRIMARY KEY,
   numero    INTEGER NOT NULL UNIQUE,
   capacidad INTEGER NOT NULL DEFAULT 4,
   estado    TEXT NOT NULL DEFAULT 'LIBRE' CHECK (estado IN ('LIBRE','OCUPADA','PEDIDO EN CURSO'))
@@ -67,17 +67,17 @@ CREATE TABLE IF NOT EXISTS mesa (
 -- Pedidos - RF04 / RF05 / RF07
 -- -------------------------------------------------
 CREATE TABLE IF NOT EXISTS pedido (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  id            SERIAL PRIMARY KEY,
   cliente_id    INTEGER,              -- usuario con rol CLIENTE (nullable si lo crea un mesero sin cliente registrado)
   mesero_id     INTEGER,              -- usuario con rol MESERO (nullable si el pedido lo hizo el cliente directamente)
   mesa_id       INTEGER,
   origen        TEXT NOT NULL DEFAULT 'CLIENTE' CHECK (origen IN ('CLIENTE','MESERO')),
   estado        TEXT NOT NULL DEFAULT 'RECIBIDO' CHECK (estado IN ('RECIBIDO','EN PREPARACION','LISTO','ENTREGADO','CANCELADO')),
   observaciones TEXT,
-  total         REAL NOT NULL DEFAULT 0,
-  confirmado    INTEGER NOT NULL DEFAULT 0 CHECK (confirmado IN (0,1)), -- RF10: solo editable si no está confirmado
-  created_at    TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at    TEXT NOT NULL DEFAULT (datetime('now')),
+  total         NUMERIC NOT NULL DEFAULT 0,
+  confirmado    BOOLEAN NOT NULL DEFAULT FALSE, -- RF10: solo editable si no está confirmado
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   FOREIGN KEY (cliente_id) REFERENCES usuario(id),
   FOREIGN KEY (mesero_id)  REFERENCES usuario(id),
   FOREIGN KEY (mesa_id)    REFERENCES mesa(id)
@@ -87,12 +87,12 @@ CREATE TABLE IF NOT EXISTS pedido (
 -- Detalle de pedido (relación N:M entre pedido y platillo)
 -- -------------------------------------------------
 CREATE TABLE IF NOT EXISTS detalle_pedido (
-  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  id              SERIAL PRIMARY KEY,
   pedido_id       INTEGER NOT NULL,
   platillo_id     INTEGER NOT NULL,
   cantidad        INTEGER NOT NULL CHECK (cantidad > 0),
-  precio_unitario REAL NOT NULL CHECK (precio_unitario >= 0),
-  subtotal        REAL NOT NULL,
+  precio_unitario NUMERIC NOT NULL CHECK (precio_unitario >= 0),
+  subtotal        NUMERIC NOT NULL,
   FOREIGN KEY (pedido_id) REFERENCES pedido(id) ON DELETE CASCADE,
   FOREIGN KEY (platillo_id) REFERENCES platillo(id)
 );
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS detalle_pedido (
 -- Ingredientes
 -- -------------------------------------------------
 CREATE TABLE IF NOT EXISTS ingrediente (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  id            SERIAL PRIMARY KEY,
   nombre        TEXT NOT NULL UNIQUE,
   unidad_medida TEXT NOT NULL DEFAULT 'unidad'
 );
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS ingrediente (
 CREATE TABLE IF NOT EXISTS platillo_ingrediente (
   platillo_id         INTEGER NOT NULL,
   ingrediente_id      INTEGER NOT NULL,
-  cantidad_requerida  REAL NOT NULL DEFAULT 0,
+  cantidad_requerida  NUMERIC NOT NULL DEFAULT 0,
   PRIMARY KEY (platillo_id, ingrediente_id),
   FOREIGN KEY (platillo_id) REFERENCES platillo(id) ON DELETE CASCADE,
   FOREIGN KEY (ingrediente_id) REFERENCES ingrediente(id) ON DELETE CASCADE
@@ -122,11 +122,11 @@ CREATE TABLE IF NOT EXISTS platillo_ingrediente (
 -- Inventario - RF12
 -- -------------------------------------------------
 CREATE TABLE IF NOT EXISTS inventario (
-  id               INTEGER PRIMARY KEY AUTOINCREMENT,
+  id               SERIAL PRIMARY KEY,
   ingrediente_id   INTEGER NOT NULL UNIQUE,
-  cantidad_actual  REAL NOT NULL DEFAULT 0,
-  cantidad_minima  REAL NOT NULL DEFAULT 0,
-  updated_at       TEXT NOT NULL DEFAULT (datetime('now')),
+  cantidad_actual  NUMERIC NOT NULL DEFAULT 0,
+  cantidad_minima  NUMERIC NOT NULL DEFAULT 0,
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   FOREIGN KEY (ingrediente_id) REFERENCES ingrediente(id) ON DELETE CASCADE
 );
 
@@ -134,13 +134,13 @@ CREATE TABLE IF NOT EXISTS inventario (
 -- Notificaciones - RF09 / RF17
 -- -------------------------------------------------
 CREATE TABLE IF NOT EXISTS notificacion (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  id         SERIAL PRIMARY KEY,
   usuario_id INTEGER NOT NULL,
   pedido_id  INTEGER,
   tipo       TEXT NOT NULL DEFAULT 'INFO' CHECK (tipo IN ('INFO','PEDIDO_LISTO','PEDIDO_NUEVO','STOCK_BAJO')),
   mensaje    TEXT NOT NULL,
-  leida      INTEGER NOT NULL DEFAULT 0 CHECK (leida IN (0,1)),
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  leida      BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE CASCADE,
   FOREIGN KEY (pedido_id) REFERENCES pedido(id) ON DELETE SET NULL
 );

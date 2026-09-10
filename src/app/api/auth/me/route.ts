@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const usuario = obtenerUsuarioPorId(auth.user.sub);
+  const usuario = await obtenerUsuarioPorId(auth.user.sub);
   if (!usuario) {
     return NextResponse.json({ error: 'Usuario no encontrado.' }, { status: 404 });
   }

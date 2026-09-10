@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'La contraseña debe tener al menos 6 caracteres.' }, { status: 400 });
     }
 
-    const { usuario, token } = registrarCliente(nombre, email, password);
+    const { usuario, token } = await registrarCliente(nombre, email, password);
 
     const response = NextResponse.json({ usuario, token }, { status: 201 });
     response.cookies.set('token', token, {

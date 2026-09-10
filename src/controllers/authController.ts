@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { getDb } from '@/lib/db';
+import { q, qOne } from '@/lib/db';
 import { signToken } from '@/lib/jwt';
 import type { RolNombre, UsuarioPublico } from '@/models/types';
 
@@ -12,6 +12,10 @@ interface UsuarioRow {
   rol: RolNombre;
 }
 
+const USUARIO_QUERY = `
+  SELECT u.id, u.nombre, u.email, u.password_hash, u.activo, r.nombre as rol
+  FROM usuario u JOIN rol r ON r.id = u.rol_id`;
+
 function toPublico(row: UsuarioRow): UsuarioPublico {
   return {
     id: row.id,
@@ -22,28 +26,33 @@ function toPublico(row: UsuarioRow): UsuarioPublico {
   };
 }
 
-/** RF03 — Registro de clientes (auto-registro siempre crea rol CLIENTE) */
-export function registrarCliente(nombre: string, email: string, password: string) {
-  const db = getDb();
+async function obtenerUsuarioRowPorId(id: number): Promise<UsuarioRow | undefined> {
+  return qOne<UsuarioRow>(USUARIO_QUERY + ' WHERE u.id = ?', [id]);
+}
 
-  const existente = db.prepare('SELECT id FROM usuario WHERE email = ?').get(email);
+async function obtenerUsuarioRowPorEmail(email: string): Promise<UsuarioRow | undefined> {
+  return qOne<UsuarioRow>(USUARIO_QUERY + ' WHERE u.email = ?', [email]);
+}
+
+/** RF03 — Registro de clientes (auto-registro siempre crea rol CLIENTE) */
+export async function registrarCliente(nombre: string, email: string, password: string) {
+  const existente = await qOne('SELECT id FROM usuario WHERE email = ?', [email]);
   if (existente) {
     throw new Error('Ya existe una cuenta registrada con este correo electrónico.');
   }
 
-  const rolCliente = db.prepare("SELECT id FROM rol WHERE nombre = 'CLIENTE'").get() as { id: number };
+  const rolCliente = await qOne<{ id: number }>("SELECT id FROM rol WHERE nombre = 'CLIENTE'");
+  if (!rolCliente) throw new Error('Rol CLIENTE no configurado.');
+
   const hash = bcrypt.hashSync(password, 10);
+  const ids = await q<{ id: number }>(
+    'INSERT INTO usuario (nombre, email, password_hash, rol_id) VALUES (?, ?, ?, ?) RETURNING id',
+    [nombre, email, hash, rolCliente.id]
+  );
+  const clienteId = ids[0].id;
 
-  const info = db
-    .prepare('INSERT INTO usuario (nombre, email, password_hash, rol_id) VALUES (?, ?, ?, ?)')
-    .run(nombre, email, hash, rolCliente.id);
-
-  const row = db
-    .prepare(
-      `SELECT u.id, u.nombre, u.email, u.password_hash, u.activo, r.nombre as rol
-       FROM usuario u JOIN rol r ON r.id = u.rol_id WHERE u.id = ?`
-    )
-    .get(Number(info.lastInsertRowid)) as UsuarioRow;
+  const row = await obtenerUsuarioRowPorId(clienteId);
+  if (!row) throw new Error('No se pudo crear el usuario.');
 
   const usuario = toPublico(row);
   const token = signToken({ sub: usuario.id, email: usuario.email, rol: usuario.rol, nombre: usuario.nombre });
@@ -51,16 +60,8 @@ export function registrarCliente(nombre: string, email: string, password: string
 }
 
 /** Inicio de sesión válido para cualquier rol */
-export function iniciarSesion(email: string, password: string) {
-  const db = getDb();
-
-  const row = db
-    .prepare(
-      `SELECT u.id, u.nombre, u.email, u.password_hash, u.activo, r.nombre as rol
-       FROM usuario u JOIN rol r ON r.id = u.rol_id WHERE u.email = ?`
-    )
-    .get(email) as UsuarioRow | undefined;
-
+export async function iniciarSesion(email: string, password: string) {
+  const row = await obtenerUsuarioRowPorEmail(email);
   if (!row) {
     throw new Error('Credenciales inválidas.');
   }
@@ -78,13 +79,7 @@ export function iniciarSesion(email: string, password: string) {
   return { usuario, token };
 }
 
-export function obtenerUsuarioPorId(id: number): UsuarioPublico | null {
-  const db = getDb();
-  const row = db
-    .prepare(
-      `SELECT u.id, u.nombre, u.email, u.password_hash, u.activo, r.nombre as rol
-       FROM usuario u JOIN rol r ON r.id = u.rol_id WHERE u.id = ?`
-    )
-    .get(id) as UsuarioRow | undefined;
+export async function obtenerUsuarioPorId(id: number): Promise<UsuarioPublico | null> {
+  const row = await obtenerUsuarioRowPorId(id);
   return row ? toPublico(row) : null;
 }

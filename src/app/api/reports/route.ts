@@ -12,9 +12,9 @@ export async function GET(req: NextRequest) {
 
   if (desde && hasta) {
     // RF13 — Reporte por periodo
-    return NextResponse.json(generarReportePorPeriodo(desde, hasta));
+    return NextResponse.json(await generarReportePorPeriodo(desde, hasta));
   }
 
   // RF11 — Panel de control de ventas (día / semana / mes)
-  return NextResponse.json(resumenVentas());
+  return NextResponse.json(await resumenVentas());
 }

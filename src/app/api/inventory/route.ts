@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const auth = requireRole(req, ['ADMINISTRADOR', 'COCINA']);
   if ('error' in auth) return auth.error;
 
-  return NextResponse.json({ inventario: listarInventario() });
+  return NextResponse.json({ inventario: await listarInventario() });
 }
 
 export async function POST(req: NextRequest) {
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const { nombre, unidad_medida, cantidad_inicial, cantidad_minima } = await req.json();
     if (!nombre) return NextResponse.json({ error: 'El nombre del insumo es obligatorio.' }, { status: 400 });
 
-    const inventario = registrarIngrediente(
+    const inventario = await registrarIngrediente(
       nombre,
       unidad_medida ?? 'unidad',
       Number(cantidad_inicial ?? 0),

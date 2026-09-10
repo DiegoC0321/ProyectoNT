@@ -11,7 +11,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   if ('error' in auth) return auth.error;
 
   try {
-    return NextResponse.json({ usuario: obtenerUsuario(Number(params.id)) });
+    return NextResponse.json({ usuario: await obtenerUsuario(Number(params.id)) });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 404 });
   }
@@ -23,7 +23,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
   try {
     const data = await req.json();
-    const usuario = actualizarUsuario(Number(params.id), data);
+    const usuario = await actualizarUsuario(Number(params.id), data);
     return NextResponse.json({ usuario });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });
@@ -36,7 +36,7 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   if ('error' in auth) return auth.error;
 
   try {
-    const usuario = desactivarUsuario(Number(params.id));
+    const usuario = await desactivarUsuario(Number(params.id));
     return NextResponse.json({ usuario });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });

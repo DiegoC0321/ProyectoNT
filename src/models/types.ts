@@ -107,7 +107,7 @@ export interface Notificacion {
   pedido_id: number | null;
   tipo: TipoNotificacion;
   mensaje: string;
-  leida: 0 | 1;
+  leida: boolean;
   created_at: string;
 }
 

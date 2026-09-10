@@ -8,7 +8,7 @@ interface Params {
 
 export async function GET(_req: NextRequest, { params }: Params) {
   try {
-    return NextResponse.json({ platillo: obtenerPlatillo(Number(params.id)) });
+    return NextResponse.json({ platillo: await obtenerPlatillo(Number(params.id)) });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 404 });
   }
@@ -21,7 +21,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
   try {
     const data = await req.json();
-    const platillo = actualizarPlatillo(Number(params.id), data);
+    const platillo = await actualizarPlatillo(Number(params.id), data);
     return NextResponse.json({ platillo });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });
@@ -34,7 +34,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if ('error' in auth) return auth.error;
 
   try {
-    const platillo = alternarDisponibilidad(Number(params.id));
+    const platillo = await alternarDisponibilidad(Number(params.id));
     return NextResponse.json({ platillo });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });
@@ -47,7 +47,7 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   if ('error' in auth) return auth.error;
 
   try {
-    eliminarPlatillo(Number(params.id));
+    await eliminarPlatillo(Number(params.id));
     return NextResponse.json({ message: 'Platillo eliminado.' });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });

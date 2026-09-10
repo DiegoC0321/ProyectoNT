@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/middleware/auth';
 import { listarPedidos, crearPedido, listarPedidosCocina } from '@/controllers/orderController';
-import type { EstadoPedido } from '@/models/types';
+import type { EstadoPedido, Pedido } from '@/models/types';
 
 export async function GET(req: NextRequest) {
   const auth = requireAuth(req);
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const estado = searchParams.get('estado') as EstadoPedido | null;
 
   if (user.rol === 'CLIENTE') {
-    return NextResponse.json({ pedidos: listarPedidos({ clienteId: user.sub, estado: estado ?? undefined }) });
+    return NextResponse.json({ pedidos: await listarPedidos({ clienteId: user.sub, estado: estado ?? undefined }) });
   }
   if (user.rol === 'INVITADO') {
     // Invitado: solo ve los pedidos de su mesa.
@@ -20,24 +20,24 @@ export async function GET(req: NextRequest) {
     if (!Number.isInteger(mesaId) || mesaId <= 0) {
       return NextResponse.json({ pedidos: [] });
     }
-    return NextResponse.json({ pedidos: listarPedidos({ mesaId, estado: estado ?? undefined }) });
+    return NextResponse.json({ pedidos: await listarPedidos({ mesaId, estado: estado ?? undefined }) });
   }
   if (user.rol === 'MESERO') {
     // RF10 — El mesero ve sus propios pedidos + todos los borradores pendientes
     // de confirmar (los que el cliente mandó desde la mesa) para revisarlos/confirmarlos.
-    const propios = listarPedidos({ meseroId: user.sub, estado: estado ?? undefined });
-    const pendientes = listarPedidos({ confirmado: 0, estado: estado ?? undefined });
-    const mapa = new Map<number, ReturnType<typeof listarPedidos>[number]>();
+    const propios = await listarPedidos({ meseroId: user.sub, estado: estado ?? undefined });
+    const pendientes = await listarPedidos({ confirmado: 0, estado: estado ?? undefined });
+    const mapa = new Map<number, Pedido>();
     for (const p of propios) mapa.set(p.id, p);
     for (const p of pendientes) if (!mapa.has(p.id)) mapa.set(p.id, p);
     return NextResponse.json({ pedidos: [...mapa.values()] });
   }
   if (user.rol === 'COCINA') {
     // RF16 — pedidos entrantes en orden de llegada
-    return NextResponse.json({ pedidos: listarPedidosCocina() });
+    return NextResponse.json({ pedidos: await listarPedidosCocina() });
   }
   // ADMINISTRADOR ve todo
-  return NextResponse.json({ pedidos: listarPedidos({ estado: estado ?? undefined }) });
+  return NextResponse.json({ pedidos: await listarPedidos({ estado: estado ?? undefined }) });
 }
 
 /** RF04 (cliente) / RF07 (mesero) — Crear un pedido */
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (user.rol === 'CLIENTE') {
-      const pedido = crearPedido({
+      const pedido = await crearPedido({
         cliente_id: user.sub,
         mesa_id: mesaId,
         origen: 'CLIENTE',
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-      const pedido = crearPedido({
+      const pedido = await crearPedido({
         mesa_id: mesaId,
         origen: 'CLIENTE',
         observaciones,
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
       if (!mesa_id) {
         return NextResponse.json({ error: 'Debes indicar la mesa (mesa_id) para registrar el pedido.' }, { status: 400 });
       }
-      const pedido = crearPedido({
+      const pedido = await crearPedido({
         mesero_id: user.sub,
         mesa_id: mesaId,
         cliente_id: body.cliente_id ?? null,

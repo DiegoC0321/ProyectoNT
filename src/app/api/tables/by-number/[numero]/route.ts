@@ -12,7 +12,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: 'Número de mesa inválido.' }, { status: 400 });
   }
 
-  const mesa = buscarMesaPorNumero(numero);
+  const mesa = await buscarMesaPorNumero(numero);
   if (!mesa) {
     return NextResponse.json({ error: 'Mesa no encontrada.' }, { status: 404 });
   }

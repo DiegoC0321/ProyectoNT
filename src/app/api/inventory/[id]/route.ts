@@ -15,7 +15,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     if (cantidad_actual === undefined) {
       return NextResponse.json({ error: 'cantidad_actual es obligatoria.' }, { status: 400 });
     }
-    const inventario = actualizarCantidadInventario(Number(params.id), Number(cantidad_actual));
+    const inventario = await actualizarCantidadInventario(Number(params.id), Number(cantidad_actual));
     return NextResponse.json({ inventario });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });

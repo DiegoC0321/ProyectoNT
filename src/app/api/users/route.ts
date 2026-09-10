@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   const auth = requireRole(req, ['ADMINISTRADOR']);
   if ('error' in auth) return auth.error;
 
-  return NextResponse.json({ usuarios: listarUsuarios() });
+  return NextResponse.json({ usuarios: await listarUsuarios() });
 }
 
 export async function POST(req: NextRequest) {
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     if (!nombre || !email || !password || !rol) {
       return NextResponse.json({ error: 'nombre, email, password y rol son obligatorios.' }, { status: 400 });
     }
-    const usuario = crearEmpleado(nombre, email, password, rol as RolNombre);
+    const usuario = await crearEmpleado(nombre, email, password, rol as RolNombre);
     return NextResponse.json({ usuario }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Error al crear el usuario.';

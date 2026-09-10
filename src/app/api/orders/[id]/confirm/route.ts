@@ -12,7 +12,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   if ('error' in auth) return auth.error;
 
   try {
-    const pedido = confirmarPedido(Number(params.id));
+    const pedido = await confirmarPedido(Number(params.id));
     return NextResponse.json({ pedido });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });

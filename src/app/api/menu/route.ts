@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const soloDisponibles = searchParams.get('disponibles') !== 'false';
   const categoriaId = searchParams.get('categoria_id');
 
-  const platillos = listarPlatillos({
+  const platillos = await listarPlatillos({
     soloDisponibles,
     categoriaId: categoriaId ? Number(categoriaId) : undefined,
   });
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     if (!data.nombre || data.precio === undefined) {
       return NextResponse.json({ error: 'nombre y precio son obligatorios.' }, { status: 400 });
     }
-    const platillo = crearPlatillo(data);
+    const platillo = await crearPlatillo(data);
     return NextResponse.json({ platillo }, { status: 201 });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });

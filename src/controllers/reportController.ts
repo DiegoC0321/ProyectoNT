@@ -1,56 +1,44 @@
-import { getDb } from '@/lib/db';
+import { q, qOne } from '@/lib/db';
 
 const ESTADOS_VENTA_VALIDA = "('ENTREGADO','LISTO','EN PREPARACION','RECIBIDO')"; // pedidos no cancelados
 
 /** RF11 — Panel de control de ventas (día / semana / mes) */
-export function resumenVentas() {
-  const db = getDb();
+export async function resumenVentas() {
+  const ventasDia = (await qOne(
+    `SELECT COALESCE(SUM(total), 0) as total, COUNT(*) as pedidos
+     FROM pedido WHERE estado IN ${ESTADOS_VENTA_VALIDA} AND (created_at::date) = CURRENT_DATE`
+  )) as { total: number; pedidos: number };
 
-  const ventasDia = db
-    .prepare(
-      `SELECT COALESCE(SUM(total), 0) as total, COUNT(*) as pedidos
-       FROM pedido WHERE estado IN ${ESTADOS_VENTA_VALIDA} AND date(created_at) = date('now')`
-    )
-    .get() as { total: number; pedidos: number };
+  const ventasSemana = (await qOne(
+    `SELECT COALESCE(SUM(total), 0) as total, COUNT(*) as pedidos
+     FROM pedido WHERE estado IN ${ESTADOS_VENTA_VALIDA} AND (created_at::date) >= CURRENT_DATE - INTERVAL '7 days'`
+  )) as { total: number; pedidos: number };
 
-  const ventasSemana = db
-    .prepare(
-      `SELECT COALESCE(SUM(total), 0) as total, COUNT(*) as pedidos
-       FROM pedido WHERE estado IN ${ESTADOS_VENTA_VALIDA} AND date(created_at) >= date('now', '-7 days')`
-    )
-    .get() as { total: number; pedidos: number };
+  const ventasMes = (await qOne(
+    `SELECT COALESCE(SUM(total), 0) as total, COUNT(*) as pedidos
+     FROM pedido WHERE estado IN ${ESTADOS_VENTA_VALIDA} AND to_char(created_at, 'YYYY-MM') = to_char(NOW(), 'YYYY-MM')`
+  )) as { total: number; pedidos: number };
 
-  const ventasMes = db
-    .prepare(
-      `SELECT COALESCE(SUM(total), 0) as total, COUNT(*) as pedidos
-       FROM pedido WHERE estado IN ${ESTADOS_VENTA_VALIDA} AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')`
-    )
-    .get() as { total: number; pedidos: number };
+  const totalPedidos = (await qOne(`SELECT COUNT(*) as total FROM pedido`)) as { total: number };
 
-  const totalPedidos = db.prepare(`SELECT COUNT(*) as total FROM pedido`).get() as { total: number };
+  const masVendidos = await q(
+    `SELECT p.nombre, SUM(d.cantidad) as unidades_vendidas, SUM(d.subtotal) as ingresos
+     FROM detalle_pedido d
+     JOIN pedido pe ON pe.id = d.pedido_id
+     JOIN platillo p ON p.id = d.platillo_id
+     WHERE pe.estado IN ${ESTADOS_VENTA_VALIDA}
+     GROUP BY p.id
+     ORDER BY unidades_vendidas DESC
+     LIMIT 5`
+  );
 
-  const masVendidos = db
-    .prepare(
-      `SELECT p.nombre, SUM(d.cantidad) as unidades_vendidas, SUM(d.subtotal) as ingresos
-       FROM detalle_pedido d
-       JOIN pedido pe ON pe.id = d.pedido_id
-       JOIN platillo p ON p.id = d.platillo_id
-       WHERE pe.estado IN ${ESTADOS_VENTA_VALIDA}
-       GROUP BY p.id
-       ORDER BY unidades_vendidas DESC
-       LIMIT 5`
-    )
-    .all();
-
-  const ventasPorDiaSemana = db
-    .prepare(
-      `SELECT date(created_at) as fecha, COALESCE(SUM(total), 0) as total
-       FROM pedido
-       WHERE estado IN ${ESTADOS_VENTA_VALIDA} AND date(created_at) >= date('now', '-6 days')
-       GROUP BY date(created_at)
-       ORDER BY fecha`
-    )
-    .all();
+  const ventasPorDiaSemana = await q(
+    `SELECT (created_at::date) as fecha, COALESCE(SUM(total), 0) as total
+     FROM pedido
+     WHERE estado IN ${ESTADOS_VENTA_VALIDA} AND (created_at::date) >= CURRENT_DATE - INTERVAL '6 days'
+     GROUP BY (created_at::date)
+     ORDER BY fecha`
+  );
 
   return {
     ventas_dia: ventasDia,
@@ -63,40 +51,35 @@ export function resumenVentas() {
 }
 
 /** RF13 — Reportes por periodo (ventas, productos más vendidos, consumo de inventario) */
-export function generarReportePorPeriodo(desde: string, hasta: string) {
-  const db = getDb();
+export async function generarReportePorPeriodo(desde: string, hasta: string) {
+  const ventas = (await qOne(
+    `SELECT COALESCE(SUM(total), 0) as total, COUNT(*) as pedidos
+     FROM pedido WHERE estado IN ${ESTADOS_VENTA_VALIDA} AND (created_at::date) BETWEEN (?::date) AND (?::date)`,
+    [desde, hasta]
+  )) as { total: number; pedidos: number };
 
-  const ventas = db
-    .prepare(
-      `SELECT COALESCE(SUM(total), 0) as total, COUNT(*) as pedidos
-       FROM pedido WHERE estado IN ${ESTADOS_VENTA_VALIDA} AND date(created_at) BETWEEN date(?) AND date(?)`
-    )
-    .get(desde, hasta) as { total: number; pedidos: number };
+  const productos = await q(
+    `SELECT p.nombre, SUM(d.cantidad) as unidades_vendidas, SUM(d.subtotal) as ingresos
+     FROM detalle_pedido d
+     JOIN pedido pe ON pe.id = d.pedido_id
+     JOIN platillo p ON p.id = d.platillo_id
+     WHERE pe.estado IN ${ESTADOS_VENTA_VALIDA} AND (pe.created_at::date) BETWEEN (?::date) AND (?::date)
+     GROUP BY p.id
+     ORDER BY unidades_vendidas DESC`,
+    [desde, hasta]
+  );
 
-  const productos = db
-    .prepare(
-      `SELECT p.nombre, SUM(d.cantidad) as unidades_vendidas, SUM(d.subtotal) as ingresos
-       FROM detalle_pedido d
-       JOIN pedido pe ON pe.id = d.pedido_id
-       JOIN platillo p ON p.id = d.platillo_id
-       WHERE pe.estado IN ${ESTADOS_VENTA_VALIDA} AND date(pe.created_at) BETWEEN date(?) AND date(?)
-       GROUP BY p.id
-       ORDER BY unidades_vendidas DESC`
-    )
-    .all(desde, hasta);
-
-  const consumoInventario = db
-    .prepare(
-      `SELECT ing.nombre, SUM(d.cantidad * pi.cantidad_requerida) as consumo_estimado, ing.unidad_medida
-       FROM detalle_pedido d
-       JOIN pedido pe ON pe.id = d.pedido_id
-       JOIN platillo_ingrediente pi ON pi.platillo_id = d.platillo_id
-       JOIN ingrediente ing ON ing.id = pi.ingrediente_id
-       WHERE pe.estado IN ${ESTADOS_VENTA_VALIDA} AND date(pe.created_at) BETWEEN date(?) AND date(?)
-       GROUP BY ing.id
-       ORDER BY consumo_estimado DESC`
-    )
-    .all(desde, hasta);
+  const consumoInventario = await q(
+    `SELECT ing.nombre, SUM(d.cantidad * pi.cantidad_requerida) as consumo_estimado, ing.unidad_medida
+     FROM detalle_pedido d
+     JOIN pedido pe ON pe.id = d.pedido_id
+     JOIN platillo_ingrediente pi ON pi.platillo_id = d.platillo_id
+     JOIN ingrediente ing ON ing.id = pi.ingrediente_id
+     WHERE pe.estado IN ${ESTADOS_VENTA_VALIDA} AND (pe.created_at::date) BETWEEN (?::date) AND (?::date)
+     GROUP BY ing.id, ing.nombre, ing.unidad_medida
+     ORDER BY consumo_estimado DESC`,
+    [desde, hasta]
+  );
 
   return { periodo: { desde, hasta }, ventas, productos_mas_vendidos: productos, consumo_inventario: consumoInventario };
 }

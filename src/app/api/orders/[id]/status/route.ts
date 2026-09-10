@@ -18,7 +18,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (!estado) {
       return NextResponse.json({ error: 'El nuevo estado es obligatorio.' }, { status: 400 });
     }
-    const pedido = actualizarEstadoPedido(Number(params.id), estado);
+    const pedido = await actualizarEstadoPedido(Number(params.id), estado);
     return NextResponse.json({ pedido });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });

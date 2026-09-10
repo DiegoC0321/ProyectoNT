@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const auth = requireRole(req, ['MESERO', 'ADMINISTRADOR', 'COCINA']);
   if ('error' in auth) return auth.error;
 
-  return NextResponse.json({ mesas: listarMesas() });
+  return NextResponse.json({ mesas: await listarMesas() });
 }
 
 export async function POST(req: NextRequest) {
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   try {
     const { numero, capacidad } = await req.json();
     if (!numero) return NextResponse.json({ error: 'El número de mesa es obligatorio.' }, { status: 400 });
-    const mesa = crearMesa(numero, capacidad ?? 4);
+    const mesa = await crearMesa(numero, capacidad ?? 4);
     return NextResponse.json({ mesa }, { status: 201 });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });

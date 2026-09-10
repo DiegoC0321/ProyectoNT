@@ -13,7 +13,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
   try {
     const { estado } = (await req.json()) as { estado: EstadoMesa };
-    const mesa = actualizarEstadoMesa(Number(params.id), estado);
+    const mesa = await actualizarEstadoMesa(Number(params.id), estado);
     return NextResponse.json({ mesa });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });
