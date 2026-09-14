@@ -2,19 +2,23 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { useFlujoBloqueado } from '@/hooks/useFlujoBloqueado';
 
 /**
- * Muestra el enlace de "Acceso para empleados" solo cuando
- * el usuario NO está autenticado (o es un rol de empleado).
- * Nunca se muestra a clientes ni invitados.
+ * Enlace discreto de acceso exclusivo del personal ("Acceso para empleados").
+ * No aparece como un login genérico para clientes: se muestra únicamente a
+ * visitantes sin sesión, a invitados (por si el personal quedó en esa sesión)
+ * y a empleados autenticados. El cliente registrado no lo ve. Tras un pedido,
+ * el flujo del cliente queda bloqueado y el enlace desaparece.
  */
 export default function AccesoEmpleados({ className }: { className?: string }) {
   const { usuario, cargando } = useAuth();
+  const bloqueado = useFlujoBloqueado();
 
-  if (cargando) return null;
+  if (cargando || bloqueado) return null;
 
-  // Si no hay usuario, mostrar (visitante no autenticado)
-  if (!usuario) {
+  // Visitante sin sesión o invitado: pueden venir del flujo del personal.
+  if (!usuario || usuario.rol === 'INVITADO' || usuario.rol !== 'CLIENTE') {
     return (
       <Link href="/login" className={className ?? 'rv-conto-empleados'}>
         <i className="bi bi-person-badge"></i> Acceso para empleados
@@ -22,15 +26,5 @@ export default function AccesoEmpleados({ className }: { className?: string }) {
     );
   }
 
-  // Si es cliente o invitado, NUNCA mostrar
-  if (usuario.rol === 'CLIENTE' || usuario.rol === 'INVITADO') {
-    return null;
-  }
-
-  // Si es empleado (MESERO, COCINA, ADMIN), mostrar
-  return (
-    <Link href="/login" className={className ?? 'rv-conto-empleados'}>
-      <i className="bi bi-person-badge"></i> Acceso para empleados
-    </Link>
-  );
+  return null;
 }

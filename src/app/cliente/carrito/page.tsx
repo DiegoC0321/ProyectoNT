@@ -10,9 +10,9 @@ import { formatearMoneda } from '@/utils/format';
 
 export default function CarritoPage() {
   const { items, cambiarCantidad, quitar, vaciar, total, mesa } = useCart();
-  const { usuario } = useAuth();
+  const { usuario, crearSesionInvitado, logout } = useAuth();
   const esInvitado = usuario?.rol === 'INVITADO';
-  const sinMesa = esInvitado && !mesa;
+  const sinMesa = (esInvitado || !usuario) && !mesa;
   const [observaciones, setObservaciones] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
@@ -22,16 +22,31 @@ export default function CarritoPage() {
     setError('');
     setEnviando(true);
     try {
+      const eraAnonimo = !usuario;
+      const eraInvitado = usuario?.rol === 'INVITADO';
+      // Solo se crea la sesión de invitado en el momento de confirmar: el
+      // visitante navega sin sesión hasta aquí.
+      if (eraAnonimo) {
+        await crearSesionInvitado();
+      }
       const { pedido } = await orderService.crearComoCliente(
         items.map((i) => ({ platillo_id: i.platillo.id, cantidad: i.cantidad })),
         observaciones || undefined,
         mesa?.id
       );
+      const numeroMesa = mesa?.numero ?? null;
       vaciar();
-      router.push(`/cliente/pedidos?nuevo=${pedido.id}`);
+      if (eraAnonimo || eraInvitado) {
+        // Apenas se hace el pedido, la sesión de invitado se cierra sola y el
+        // flujo queda bloqueado en la confirmación: así el personal siempre
+        // puede entrar después a su cuenta sin quedar marcado como invitado.
+        await logout(`/cliente/confirmacion?pedido=${pedido.id}&mesa=${numeroMesa ?? ''}`);
+      } else {
+        // Cliente registrado: conserva su sesión y sigue sus pedidos.
+        router.push(`/cliente/pedidos?nuevo=${pedido.id}`);
+      }
     } catch (err) {
       setError((err as Error).message);
-    } finally {
       setEnviando(false);
     }
   }

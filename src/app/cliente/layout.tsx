@@ -7,23 +7,24 @@ import type { RolNombre } from '@/models/types';
 
 const ROLES_CLIENTE: RolNombre[] = ['CLIENTE', 'INVITADO'];
 
+/**
+ * Zona del cliente. Permite navegar SIN sesión (visitante anónimo): la sesión
+ * de invitado se crea únicamente al confirmar un pedido, para no interferir
+ * con el flujo de acceso de los empleados. Los roles de empleado son
+ * redirigidos a su propio espacio.
+ */
 export default function ClienteLayout({ children }: { children: ReactNode }) {
-  const { usuario, cargando, crearSesionInvitado } = useAuth();
+  const { usuario, cargando } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (cargando) return;
-    if (!usuario) {
-      // El cliente no necesita contraseña: se crea una sesión anónima.
-      crearSesionInvitado().catch(() => {});
-      return;
-    }
+    if (cargando || !usuario) return;
     if (!ROLES_CLIENTE.includes(usuario.rol)) {
       router.replace('/');
     }
-  }, [cargando, usuario, crearSesionInvitado, router]);
+  }, [cargando, usuario, router]);
 
-  const permitido = !cargando && usuario && ROLES_CLIENTE.includes(usuario.rol);
+  const permitido = !cargando && (!usuario || ROLES_CLIENTE.includes(usuario.rol));
   if (!permitido) {
     return (
       <div className="container py-5 text-center text-muted">

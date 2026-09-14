@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useRef, ReactNode, useC
 import { useRouter } from 'next/navigation';
 import type { UsuarioPublico } from '@/models/types';
 import { authService } from '@/services/authService';
+import { limpiarPedidoFinalizado } from '@/lib/flujoCliente';
 
 interface AuthContextValue {
   usuario: UsuarioPublico | null;
@@ -11,7 +12,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<UsuarioPublico>;
   registrar: (nombre: string, email: string, password: string) => Promise<UsuarioPublico>;
   crearSesionInvitado: () => Promise<UsuarioPublico>;
-  logout: () => Promise<void>;
+  logout: (destino?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -34,12 +35,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     const res = await authService.login(email, password);
     setUsuario(res.usuario);
+    // Una cuenta real (personal o cliente registrado) levanta el bloqueo que
+    // dejó el pedido del invitado anterior.
+    if (res.usuario.rol !== 'INVITADO') limpiarPedidoFinalizado();
     return res.usuario;
   }, []);
 
   const registrar = useCallback(async (nombre: string, email: string, password: string) => {
     const res = await authService.registrar(nombre, email, password);
     setUsuario(res.usuario);
+    if (res.usuario.rol !== 'INVITADO') limpiarPedidoFinalizado();
     return res.usuario;
   }, []);
 
@@ -49,11 +54,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return res.usuario;
   }, []);
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (destino?: string) => {
     const eraInvitado = usuarioRef.current?.rol === 'INVITADO';
     await authService.logout();
     setUsuario(null);
-    router.push(eraInvitado ? '/' : '/login');
+    router.push(destino ?? (eraInvitado ? '/' : '/login'));
   }, [router]);
 
   return (

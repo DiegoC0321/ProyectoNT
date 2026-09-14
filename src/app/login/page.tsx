@@ -46,7 +46,7 @@ export default function LoginPage() {
               Ingresso
             </h2>
             <p className="rv-bajada" style={{ margin: '0.4rem auto 0', maxWidth: '100%' }}>
-              chi ha una chiave, entra — il resto aspetta al bancone
+              chi ha una chiave, entra — el resto aspetta al bancone
             </p>
           </div>
         </div>
@@ -82,10 +82,10 @@ export default function LoginPage() {
           <hr style={{ borderColor: 'rgba(43, 28, 14, 0.3)' }} />
           <p className="small text-muted mb-1">Chiavi di prova:</p>
           <ul className="small text-muted mb-0">
-            <li>cliente@demo.com / Cliente123!</li>
-            <li>mesero@demo.com / Mesero123!</li>
-            <li>cocina@demo.com / Cocina123!</li>
-            <li>admin@demo.com / Admin123!</li>
+            <li>Cliente — cliente@demo.com / Cliente123!</li>
+            <li>Mesero — mesero@demo.com / Mesero123!</li>
+            <li>Cocina — cocina@demo.com / Cocina123!</li>
+            <li>Administrador — admin@demo.com / Admin123!</li>
           </ul>
           <p className="rv-accentos-demo mt-3">
             per il personale: cassa, cucina, sala — uno per ruolo.

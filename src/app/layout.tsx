@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { Cormorant_Garamond, Caveat, Work_Sans } from 'next/font/google';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -7,7 +6,8 @@ import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import Navbar from '@/components/Navbar';
-import AccesoEmpleados from '@/components/AccesoEmpleados';
+import GuardiaConfirmacion from '@/components/GuardiaConfirmacion';
+import FooterEnlaces from '@/components/FooterEnlaces';
 import BootstrapClient from '@/components/BootstrapClient';
 
 const garamond = Cormorant_Garamond({
@@ -44,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <AuthProvider>
           <CartProvider>
+            <GuardiaConfirmacion />
             <Navbar />
             <main className="min-vh-100">{children}</main>
             <footer className="rv-footer">
@@ -73,10 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   </div>
                   <div className="rv-footer-col">
                     <p className="rv-footer-titulo">Il sistema</p>
-                    <p className="rv-footer-links">
-                      <Link href="/menu">Menú digital</Link>
-                      <AccesoEmpleados className="" />
-                    </p>
+                    <FooterEnlaces />
                   </div>
                 </div>
                 <div className="rv-footer-bottom">

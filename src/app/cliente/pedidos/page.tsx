@@ -18,12 +18,16 @@ export default function MisPedidosPage() {
   const esInvitado = usuario?.rol === 'INVITADO';
 
   const cargar = useCallback(() => {
+    if (!usuario) {
+      setCargando(false);
+      return;
+    }
     orderService
       .listar(esInvitado ? { mesaId: mesa?.id ?? undefined } : undefined)
       .then((res) => setPedidos(res.pedidos))
       .catch((err) => setError(err.message))
       .finally(() => setCargando(false));
-  }, [esInvitado, mesa?.id]);
+  }, [usuario, esInvitado, mesa?.id]);
 
   useEffect(() => {
     cargar();

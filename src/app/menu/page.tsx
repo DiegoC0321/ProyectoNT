@@ -3,13 +3,8 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { menuService } from '@/services/menuService';
-import { api } from '@/services/api';
-import { useCart } from '@/context/CartContext';
-import { useAuth } from '@/context/AuthContext';
+import ListadoMenu from '@/components/ListadoMenu';
 import AccesoEmpleados from '@/components/AccesoEmpleados';
-import { CURSOS } from '@/data/carta';
-import type { Platillo, Categoria, Mesa } from '@/models/types';
 
 const RECETAS_SOCKET: { label: string; text: string; komenu?: string }[] = [
   { label: 'fatto in casa, ogni giorno', text: 'la pasta si fa stamattina, il ragù si fa ieri e oggi si mangia.' },
@@ -34,19 +29,13 @@ export default function MenuPublicoPage() {
 }
 
 function MenuPublicoContent() {
-  const [platillos, setPlatillos] = useState<Platillo[]>([]);
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState('');
-  const [mesa, setMesa] = useState<Mesa | null>(null);
-  const [mesaError, setMesaError] = useState('');
   const [recetaActual, setRecetaActual] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const { setMesa: guardarMesa } = useCart();
-  const { usuario, cargando: cargandoAuth, crearSesionInvitado } = useAuth();
   const searchParams = useSearchParams();
 
-  const numeroMesa = Number(searchParams.get('mesa'));
+  const numeroMesaRaw = searchParams.get('mesa');
+  const numeroMesa =
+    numeroMesaRaw && !Number.isNaN(Number(numeroMesaRaw)) ? Number(numeroMesaRaw) : null;
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
@@ -55,37 +44,10 @@ function MenuPublicoContent() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
-  useEffect(() => {
-    if (!searchParams.has('mesa') || cargandoAuth) return;
-    if (!usuario) {
-      crearSesionInvitado().catch(() => {});
-    }
-  }, [searchParams, cargandoAuth, usuario, crearSesionInvitado]);
-
-  useEffect(() => {
-    Promise.all([menuService.listar(true), menuService.listarCategorias()])
-      .then(([m, c]) => {
-        setPlatillos(m.platillos);
-        setCategorias(c.categorias);
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setCargando(false));
-  }, []);
-
-  useEffect(() => {
-    if (!searchParams.has('mesa')) return;
-    if (!Number.isInteger(numeroMesa) || numeroMesa <= 0) {
-      setMesaError('Código QR/NFC inválido: mesa no reconocida.');
-      return;
-    }
-    api
-      .get<{ mesa: Mesa }>(`/tables/by-number/${numeroMesa}`)
-      .then(({ mesa }) => {
-        setMesa(mesa);
-        guardarMesa({ id: mesa.id, numero: mesa.numero });
-      })
-      .catch((err) => setMesaError((err as Error).message));
-  }, [searchParams, numeroMesa, guardarMesa]);
+  // NOTA: visitar /menu?mesa=N NO crea sesión. El cliente que entra por el
+  // enlace navega como visitante; la sesión de invitado solo se crea al
+  // confirmar el pedido en el carrito. Así el flujo del cliente nunca
+  // interfiere con el acceso de los empleados.
 
   return (
     <div>
@@ -109,80 +71,8 @@ function MenuPublicoContent() {
         </div>
       </section>
 
-      <div className="container py-4 position-relative">
-        {/* nota manuscrita */}
-        <span className="rv-mano rv-mano-pomodoro" style={{ display: 'block', textAlign: 'center', margin: '1rem 0 0.5rem', fontSize: '1.5rem', transform: 'rotate(-2deg)' }}>
-          oggi: spaghetti, ragù, e un buon vino
-        </span>
-
-        {/* Mesa QR */}
-        {mesa && (
-          <div className="rv-card-panel d-flex flex-wrap justify-content-between align-items-start gap-3 p-3 mb-4">
-            <span>
-              <i className="bi bi-qr-code me-1" style={{ color: 'var(--rv-pomodoro)' }}></i>
-              Estás en la <strong>mesa {mesa.numero}</strong> (capacidad {mesa.capacidad}).
-            </span>
-            <Link href={`/cliente/menu?mesa=${mesa.numero}`} className="rv-btn rv-btn-pomodoro" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>
-              <i className="bi bi-cart-plus"></i> Hacer pedido
-            </Link>
-          </div>
-        )}
-
-        {mesaError && (
-          <div className="rv-card-panel d-flex align-items-center gap-2 p-3 mb-4" style={{ background: 'var(--rv-crema)', borderLeft: '4px solid var(--rv-pomodoro)' }}>
-            <i className="bi bi-exclamation-triangle" style={{ color: 'var(--rv-pomodoro)' }}></i> {mesaError}
-          </div>
-        )}
-
-        {error && (
-          <div className="rv-card-panel d-flex align-items-center gap-2 p-3 mb-4" style={{ background: 'var(--rv-crema)', borderLeft: '4px solid var(--rv-pomodoro)' }}>
-            <i className="bi bi-exclamation-triangle" style={{ color: 'var(--rv-pomodoro)' }}></i> {error}
-          </div>
-        )}
-
-        {/* ====== CARTA CURSOS — SIEMPRE SE MUESTRA ====== */}
-        {CURSOS.map((curso) => (
-          <section key={curso.nombre} className="mb-4">
-            <div className="d-flex align-items-baseline gap-2 mb-3">
-              <p className="rv-eyebrow rv-eyebrow-dark">{curso.nombre}</p>
-              <span className="puntos" style={{ flex: '1 auto', borderBottom: '1px dotted rgba(43, 28, 14, 0.4)', transform: 'translateY(-0.2em)' }}></span>
-            </div>
-            <div className="rv-listado-platos">
-              <div className="rv-listado-cabecera">
-                <p className="rv-eyebrow mb-1">Se serve oggi</p>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: '700', fontSize: '1.4rem' }}>
-                  {curso.nombre}
-                </h3>
-              </div>
-              <div className="rv-listado-cuerpo">
-                <ul className="rv-lista">
-                  {curso.platos.map((plato) => (
-                    <li key={plato.nombre}>
-                      <div>
-                        <span className="rv-lista-nombre">
-                          {plato.nombre}
-                          {plato.favorito && <span className="rv-badge-recetta">il più amato</span>}
-                          {plato.picante && <span className="rv-picante">¡piccante!</span>}
-                        </span>
-                        {plato.italiano && <span className="rv-lista-italiano">{plato.italiano}</span>}
-                      </div>
-                      <div className="d-flex align-items-baseline" style={{ gap: '0.5rem', justifyContent: 'flex-end' }}>
-                        <span className="rv-lista-precio">{plato.precio}</span>
-                        <span className="puntos" style={{ minWidth: '0.5rem', borderBottom: '1px dotted rgba(43, 28, 14, 0.4)', transform: 'translateY(-0.3em)' }}></span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </section>
-        ))}
-
-        {/* Pie de carta */}
-        <p className="rv-carta-pie mt-4">
-          la pasta se hace el mismo día — si se acaba, se acaba
-        </p>
-      </div>
+      {/* ====== CARTA CON CARRITO (platillos reales de la BD) ====== */}
+      <ListadoMenu numeroMesa={numeroMesa} />
 
       {/* Tira manuscrita */}
       {RECETAS_SOCKET.length > 0 && (

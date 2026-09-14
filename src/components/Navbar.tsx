@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { useFlujoBloqueado } from '@/hooks/useFlujoBloqueado';
 
 const ENLACES_POR_ROL: Record<string, { href: string; label: string }[]> = {
   INVITADO: [
@@ -39,7 +40,23 @@ const ENLACES_POR_ROL: Record<string, { href: string; label: string }[]> = {
 
 export default function Navbar() {
   const { usuario, logout } = useAuth();
+  const bloqueado = useFlujoBloqueado();
   const enlaces = usuario ? ENLACES_POR_ROL[usuario.rol] ?? [] : [];
+
+  // Tras un pedido, el cliente queda en la confirmación: no se ofrece ninguna
+  // navegación ni acceso a login.
+  if (bloqueado) {
+    return (
+      <nav className="navbar navbar-dark rv-navbar sticky-top">
+        <div className="container">
+          <span className="navbar-brand mb-0">
+            Trattoria <em>del Vicolo</em>
+            <small>Cucina italiana · dal 1987</small>
+          </span>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark rv-navbar sticky-top">
@@ -91,18 +108,11 @@ export default function Navbar() {
                 )}
               </>
             ) : (
-              <>
-                <li className="nav-item mb-2 mb-lg-0">
-                  <Link className="nav-link" href="/login">
-                    <i className="bi bi-person-badge"></i> Empleados
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link rv-nav-cta" href="/menu?mesa=1">
-                    <i className="bi bi-qr-code-scan"></i> Pedir desde la mesa
-                  </Link>
-                </li>
-              </>
+              <li className="nav-item">
+                <Link className="nav-link rv-nav-cta" href="/menu?mesa=1">
+                  <i className="bi bi-qr-code-scan"></i> Pedir desde la mesa
+                </Link>
+              </li>
             )}
           </ul>
         </div>
