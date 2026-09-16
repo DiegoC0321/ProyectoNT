@@ -1,7 +1,7 @@
 /**
  * Servicio de comunicación con la API (capa "services" de MVW).
  * Todas las peticiones usan credentials: 'include' para enviar la cookie
- * httpOnly "token" que el backend establece al iniciar sesión/registrarse.
+ * httpOnly "token" que el backend establece al iniciar sesión.
  */
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -24,8 +24,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 export const api = {
   get: <T>(path: string) => request<T>(path, { method: 'GET' }),
-  post: <T>(path: string, body?: unknown) =>
-    request<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
+  post: <T>(path: string, body?: unknown, headers?: Record<string, string>) =>
+    request<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined, headers }),
   put: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: 'PUT', body: body ? JSON.stringify(body) : undefined }),
   patch: <T>(path: string, body?: unknown) =>

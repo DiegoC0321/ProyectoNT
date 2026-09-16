@@ -27,6 +27,18 @@ const TRANSICIONES_VALIDAS: Record<EstadoPedido, EstadoPedido[]> = {
   CANCELADO: [],
 };
 
+async function liberarMesaSiSinPedidosActivos(mesaId?: number | null): Promise<void> {
+  if (!mesaId) return;
+  const activos = await qOne<{ n: number }>(
+    `SELECT COUNT(*) as n FROM pedido
+     WHERE mesa_id = ? AND estado IN ('RECIBIDO', 'EN PREPARACION', 'LISTO')`,
+    [mesaId]
+  );
+  if (!activos || activos.n === 0) {
+    await qRun(`UPDATE mesa SET estado = 'LIBRE' WHERE id = ?`, [mesaId]);
+  }
+}
+
 async function adjuntarDetalles(pedido: Pedido): Promise<Pedido> {
   const detalles = await q<DetallePedido>(
     `SELECT d.*, p.nombre as platillo_nombre
@@ -151,8 +163,11 @@ export async function crearPedido(input: CrearPedidoInput): Promise<Pedido> {
       );
     }
 
-    if (confirmado && input.mesa_id) {
-      await tx.qRun(`UPDATE mesa SET estado = 'PEDIDO EN CURSO' WHERE id = ?`, [input.mesa_id]);
+    if (input.mesa_id) {
+      await tx.qRun(`UPDATE mesa SET estado = ? WHERE id = ?`, [
+        confirmado ? 'PEDIDO EN CURSO' : 'OCUPADA',
+        input.mesa_id,
+      ]);
     }
 
     return id;
@@ -232,6 +247,7 @@ export async function cancelarPedido(id: number): Promise<Pedido> {
     throw new Error('El pedido ya fue confirmado y enviado a cocina; no puede cancelarse desde este módulo.');
   }
   await qRun(`UPDATE pedido SET estado = 'CANCELADO', updated_at = NOW() WHERE id = ?`, [id]);
+  await liberarMesaSiSinPedidosActivos(pedido.mesa_id);
   return obtenerPedido(id);
 }
 
@@ -255,8 +271,8 @@ export async function actualizarEstadoPedido(id: number, nuevoEstado: EstadoPedi
     }
   }
 
-  if (nuevoEstado === 'ENTREGADO' && pedido.mesa_id) {
-    await qRun(`UPDATE mesa SET estado = 'LIBRE' WHERE id = ?`, [pedido.mesa_id]);
+  if (nuevoEstado === 'ENTREGADO' || nuevoEstado === 'CANCELADO') {
+    await liberarMesaSiSinPedidosActivos(pedido.mesa_id);
   }
 
   return obtenerPedido(id);

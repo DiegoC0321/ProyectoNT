@@ -142,9 +142,9 @@ export default function PedidosMeseroPage() {
     <div>
       <div className="rv-panel-cabecera">
         <div className="container">
-          <p className="rv-eyebrow rv-eyebrow-dark">Il sistema · ordini</p>
-          <h1 className="rv-panel-nombre">Pedidos <em>della sala</em></h1>
-          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>ogni ordine è pronto — serve con calma</p>
+          <p className="rv-eyebrow rv-eyebrow-dark">El sistema · pedidos</p>
+          <h1 className="rv-panel-nombre">Pedidos <em>de la sala</em></h1>
+          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>cada pedido se sirve con calma</p>
         </div>
       </div>
       <div className="container pb-4 pt-3" style={{ maxWidth: 800 }}>

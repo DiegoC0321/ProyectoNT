@@ -64,7 +64,7 @@ function validarDsn() {
     // host del proyecto vs host de BD
   }
   if (u.port && Number(u.port) === 5432 && /\.supabase\.co$/i.test(u.hostname)) avisos.push('puerto 5432 sugerido: usa el pooler (6543) o db.<ref>.supabase.co');
-  if (/CAMBIAME|TU-|tu-proyecto|tu-password/i.test(conexion)) avisos.push('sigue siendo el placeholder del .env.example');
+  if (/CAMBIAME|TU-|tu-proyecto|tu-password/i.test(conexion)) avisos.push('sigue siendo el placeholder de ejemplo (pon tu cadena real de Supabase en .env.local)');
   console.log(`[db:setup] Conectando a ${u.hostname}:${u.port || 5432} (usuario: ${u.username || '(vacío)'})`);
   if (avisos.length) {
     console.error('[db:setup] ADVERTENCIA sobre DATABASE_URL:');

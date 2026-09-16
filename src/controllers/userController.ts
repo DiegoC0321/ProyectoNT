@@ -23,12 +23,8 @@ export async function listarUsuarios(): Promise<UsuarioPublico[]> {
   return rows.map(toPublico);
 }
 
-/** RF15 — Crear empleados con rol MESERO, COCINA o ADMINISTRADOR */
-export async function crearEmpleado(nombre: string, email: string, password: string, rol: RolNombre) {
-  if (rol === 'CLIENTE') {
-    throw new Error('Los clientes deben registrarse mediante el formulario público de registro.');
-  }
-
+/** RF15 — Crear cuentas (personal o clientes); solo el administrador, desde /admin/usuarios */
+export async function crearUsuario(nombre: string, email: string, password: string, rol: RolNombre) {
   const existente = await qOne('SELECT id FROM usuario WHERE email = ?', [email]);
   if (existente) throw new Error('Ya existe un usuario con este correo electrónico.');
 

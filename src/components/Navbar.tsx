@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useFlujoBloqueado } from '@/hooks/useFlujoBloqueado';
 
@@ -10,14 +11,12 @@ const ENLACES_POR_ROL: Record<string, { href: string; label: string }[]> = {
     { href: '/cliente/menu', label: 'Menú' },
     { href: '/cliente/carrito', label: 'Carrito' },
     { href: '/cliente/pedidos', label: 'Mis pedidos' },
-    { href: '/cliente/recomendaciones', label: 'Recomendaciones' },
   ],
   CLIENTE: [
     { href: '/cliente', label: 'Dashboard' },
     { href: '/cliente/menu', label: 'Menú' },
     { href: '/cliente/carrito', label: 'Carrito' },
     { href: '/cliente/pedidos', label: 'Mis pedidos' },
-    { href: '/cliente/recomendaciones', label: 'Recomendaciones' },
   ],
   MESERO: [
     { href: '/mesero', label: 'Dashboard' },
@@ -40,8 +39,18 @@ const ENLACES_POR_ROL: Record<string, { href: string; label: string }[]> = {
 
 export default function Navbar() {
   const { usuario, logout } = useAuth();
+  const pathname = usePathname();
   const bloqueado = useFlujoBloqueado();
-  const enlaces = usuario ? ENLACES_POR_ROL[usuario.rol] ?? [] : [];
+  // En la zona del cliente, una cuenta de personal (mesero/cocina/admin) NO es
+  // la identidad del comensal: pertenece a otro proceso. Se muestra la vista de
+  // invitado. Solo una cuenta CLIENTE registrada se muestra como sesión aquí.
+  const enCliente = (pathname ?? '').startsWith('/cliente');
+  const vistaCliente = enCliente && usuario?.rol !== 'CLIENTE';
+  const enlaces = vistaCliente
+    ? ENLACES_POR_ROL.INVITADO
+    : usuario
+      ? ENLACES_POR_ROL[usuario.rol] ?? []
+      : [];
 
   // Tras un pedido, el cliente queda en la confirmación: no se ofrece ninguna
   // navegación ni acceso a login.
@@ -96,10 +105,12 @@ export default function Navbar() {
               <>
                 <li className="nav-item me-2 mb-2 mb-lg-0">
                   <span className="rv-nav-badge">
-                    {usuario.rol === 'INVITADO' ? 'Invitado' : `${usuario.nombre} · ${usuario.rol}`}
+                    {usuario.rol === 'INVITADO' || vistaCliente
+                      ? 'Invitado'
+                      : `${usuario.nombre} · ${usuario.rol}`}
                   </span>
                 </li>
-                {usuario.rol !== 'INVITADO' && (
+                {usuario.rol !== 'INVITADO' && !vistaCliente && (
                   <li className="nav-item mb-2 mb-lg-0">
                     <button className="rv-nav-salir" onClick={() => logout()}>
                       Cerrar sesión

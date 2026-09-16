@@ -6,13 +6,18 @@ import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { orderService } from '@/services/orderService';
+import { authService } from '@/services/authService';
+import { marcarPedidoFinalizado } from '@/lib/flujoCliente';
 import { formatearMoneda } from '@/utils/format';
 
 export default function CarritoPage() {
   const { items, cambiarCantidad, quitar, vaciar, total, mesa } = useCart();
-  const { usuario, crearSesionInvitado, logout } = useAuth();
-  const esInvitado = usuario?.rol === 'INVITADO';
-  const sinMesa = (esInvitado || !usuario) && !mesa;
+  const { usuario } = useAuth();
+  // Identidad del cliente: solo una cuenta CLIENTE registrada cuenta como
+  // sesión; las del personal (mesero/cocina/admin) pertenecen a OTRO proceso
+  // y no deben contaminar el pedido del comensal en este navegador.
+  const esClienteRegistrado = usuario?.rol === 'CLIENTE';
+  const sinMesa = !esClienteRegistrado && !mesa;
   const [observaciones, setObservaciones] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
@@ -22,28 +27,30 @@ export default function CarritoPage() {
     setError('');
     setEnviando(true);
     try {
-      const eraAnonimo = !usuario;
-      const eraInvitado = usuario?.rol === 'INVITADO';
-      // Solo se crea la sesión de invitado en el momento de confirmar: el
-      // visitante navega sin sesión hasta aquí.
-      if (eraAnonimo) {
-        await crearSesionInvitado();
+      // Visitante (con o sin cuenta de personal abierta): se obtiene un token
+      // de invitado en memoria, se usa SOLO para crear este pedido y se
+      // descarta. La cookie de la cuenta (si existe) queda intacta.
+      let tokenInvitado: string | undefined;
+      if (!esClienteRegistrado) {
+        const sesion = await authService.sesionInvitado();
+        tokenInvitado = sesion.token;
       }
       const { pedido } = await orderService.crearComoCliente(
         items.map((i) => ({ platillo_id: i.platillo.id, cantidad: i.cantidad })),
         observaciones || undefined,
-        mesa?.id
+        mesa?.id,
+        tokenInvitado
       );
       const numeroMesa = mesa?.numero ?? null;
       vaciar();
-      if (eraAnonimo || eraInvitado) {
-        // Apenas se hace el pedido, la sesión de invitado se cierra sola y el
-        // flujo queda bloqueado en la confirmación: así el personal siempre
-        // puede entrar después a su cuenta sin quedar marcado como invitado.
-        await logout(`/cliente/confirmacion?pedido=${pedido.id}&mesa=${numeroMesa ?? ''}`);
-      } else {
+      if (esClienteRegistrado) {
         // Cliente registrado: conserva su sesión y sigue sus pedidos.
         router.push(`/cliente/pedidos?nuevo=${pedido.id}`);
+      } else {
+        // Apenas se hace el pedido, el flujo del cliente queda bloqueado en la
+        // confirmación sin dejar rastro de sesión.
+        marcarPedidoFinalizado();
+        router.push(`/cliente/confirmacion?pedido=${pedido.id}&mesa=${numeroMesa ?? ''}`);
       }
     } catch (err) {
       setError((err as Error).message);
@@ -57,16 +64,16 @@ export default function CarritoPage() {
         <section className="rv-menu-cabecera" style={{ padding: '2.5rem 0' }}>
           <div className="container">
             <p className="rv-eyebrow rv-eyebrow-claro">Il carrello</p>
-            <h1 className="rv-menu-marca">Il <span>Conto</span></h1>
+            <h1 className="rv-menu-marca">La <span>Cuenta</span></h1>
           </div>
         </section>
         <div className="container py-5 text-center">
           <div className="rv-listado-platos" style={{ maxWidth: 420, margin: '0 auto' }}>
             <div className="rv-listado-cuerpo" style={{ textAlign: 'center', padding: '2.5rem 1.5rem' }}>
               <i className="bi bi-cart-x" style={{ fontSize: '2.5rem', color: 'var(--rv-tinta-2)', opacity: 0.5 }}></i>
-              <h3 style={{ fontFamily: 'var(--font-display)', marginTop: '1rem' }}>Il carrello è vuoto</h3>
+              <h3 style={{ fontFamily: 'var(--font-display)', marginTop: '1rem' }}>El carrito está vacío</h3>
               <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.6rem 0 1.4rem' }}>
-                ninguno ha ordinato ancora — che cosa vuoi stamattina?
+                aún no has pedido nada — ¿qué quieres para hoy?
               </p>
               <Link href="/cliente/menu" className="rv-btn rv-btn-pomodoro">
                 <i className="bi bi-book"></i> Ver la carta
@@ -82,9 +89,9 @@ export default function CarritoPage() {
     <div>
       <section className="rv-menu-cabecera" style={{ padding: '2.5rem 0' }}>
         <div className="container">
-          <p className="rv-eyebrow rv-eyebrow-claro">Il carrello</p>
-          <h1 className="rv-menu-marca">Il <span>Conto</span></h1>
-          <p className="rv-menu-sub">il tuo ordine — pronto per la cucina</p>
+          <p className="rv-eyebrow rv-eyebrow-claro">El carrito</p>
+          <h1 className="rv-menu-marca">La <span>Cuenta</span></h1>
+          <p className="rv-menu-sub">tu pedido — listo para la cocina</p>
         </div>
       </section>
 
@@ -193,7 +200,7 @@ export default function CarritoPage() {
         <div className="rv-listado-platos">
           <div className="rv-listado-cuerpo" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
-              <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.1rem', margin: 0 }}>Totale</p>
+              <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.1rem', margin: 0 }}>Total</p>
               <h4 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, margin: 0, fontSize: '1.8rem' }}>
                 {formatearMoneda(total)}
               </h4>

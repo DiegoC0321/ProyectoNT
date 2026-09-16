@@ -26,12 +26,12 @@ export default function AdminDashboardPage() {
     <div>
       <div className="rv-panel-cabecera">
         <div className="container">
-          <p className="rv-eyebrow rv-eyebrow-dark">Il sistema · il cassaio</p>
+          <p className="rv-eyebrow rv-eyebrow-dark">El sistema · la caja</p>
           <h1 className="rv-panel-nombre">
             <em>{usuario?.nombre ?? 'Admin'}</em>
           </h1>
           <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.5rem', margin: '0.7rem 0 0' }}>
-            ogni giorno, un bilancio — ogni sera, un conto
+            cada día, un balance — cada noche, una cuenta
           </p>
         </div>
       </div>
@@ -41,7 +41,7 @@ export default function AdminDashboardPage() {
         {resumen && (
           <div className="rv-listado-platos mb-4" style={{ maxWidth: 500, margin: '1.5rem auto' }}>
             <div className="rv-listado-cabecera">
-              <p className="rv-eyebrow mb-1">Riassunto oggi</p>
+              <p className="rv-eyebrow mb-1">Resumen de hoy</p>
               <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: '700', fontSize: '1.3rem' }}>
                 Resumen del día
               </h3>
@@ -60,7 +60,7 @@ export default function AdminDashboardPage() {
 
         {/* Accesos rápidos */}
         <div className="rv-mano rv-mano-pomodoro" style={{ fontSize: '1.5rem', textAlign: 'center', margin: '2rem 0 1rem', transform: 'rotate(-1.5deg)' }}>
-          accedi rapidamente — ogni cosa è a portata di mano
+          acceso rápido — todo a la mano
         </div>
 
         <div className="row g-4">
@@ -71,7 +71,7 @@ export default function AdminDashboardPage() {
                   <div className="d-flex justify-content-center mb-3" style={{ fontSize: '2rem' }}>
                     <i className="bi bi-book" style={{ color: 'var(--rv-pomodoro)' }}></i>
                   </div>
-                  <p className="rv-eyebrow rv-eyebrow-dark">Menù</p>
+                  <p className="rv-eyebrow rv-eyebrow-dark">Menú</p>
                   <h3 className="card-title" style={{ fontSize: '1.1rem' }}>Gestionar carta</h3>
                 </div>
               </div>
@@ -120,7 +120,7 @@ export default function AdminDashboardPage() {
 
         <div className="text-center mt-4">
           <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.25rem', transform: 'rotate(-1deg)' }}>
-            il ritorno della trattoria — ogni giorno, con la stessa calma
+            el regreso de la trattoria — cada día, con la misma calma
           </p>
         </div>
       </div>

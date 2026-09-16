@@ -3,6 +3,7 @@
 import { useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { RUTA_LOGIN } from '@/lib/acceso';
 import type { RolNombre } from '@/models/types';
 
 /**
@@ -16,7 +17,7 @@ export default function RequireRole({ roles, children }: { roles: RolNombre[]; c
   useEffect(() => {
     if (cargando) return;
     if (!usuario) {
-      router.replace('/login');
+      router.replace(RUTA_LOGIN);
       return;
     }
     if (!roles.includes(usuario.rol)) {

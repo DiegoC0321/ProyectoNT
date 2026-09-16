@@ -5,13 +5,12 @@ import { useRouter } from 'next/navigation';
 import type { UsuarioPublico } from '@/models/types';
 import { authService } from '@/services/authService';
 import { limpiarPedidoFinalizado } from '@/lib/flujoCliente';
+import { RUTA_LOGIN } from '@/lib/acceso';
 
 interface AuthContextValue {
   usuario: UsuarioPublico | null;
   cargando: boolean;
   login: (email: string, password: string) => Promise<UsuarioPublico>;
-  registrar: (nombre: string, email: string, password: string) => Promise<UsuarioPublico>;
-  crearSesionInvitado: () => Promise<UsuarioPublico>;
   logout: (destino?: string) => Promise<void>;
 }
 
@@ -41,28 +40,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return res.usuario;
   }, []);
 
-  const registrar = useCallback(async (nombre: string, email: string, password: string) => {
-    const res = await authService.registrar(nombre, email, password);
-    setUsuario(res.usuario);
-    if (res.usuario.rol !== 'INVITADO') limpiarPedidoFinalizado();
-    return res.usuario;
-  }, []);
-
-  const crearSesionInvitado = useCallback(async () => {
-    const res = await authService.sesionInvitado();
-    setUsuario(res.usuario);
-    return res.usuario;
-  }, []);
-
   const logout = useCallback(async (destino?: string) => {
     const eraInvitado = usuarioRef.current?.rol === 'INVITADO';
     await authService.logout();
     setUsuario(null);
-    router.push(destino ?? (eraInvitado ? '/' : '/login'));
+    router.push(destino ?? (eraInvitado ? '/' : RUTA_LOGIN));
   }, [router]);
 
   return (
-    <AuthContext.Provider value={{ usuario, cargando, login, registrar, crearSesionInvitado, logout }}>
+    <AuthContext.Provider value={{ usuario, cargando, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

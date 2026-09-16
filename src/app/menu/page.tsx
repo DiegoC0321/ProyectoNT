@@ -7,17 +7,17 @@ import ListadoMenu from '@/components/ListadoMenu';
 import AccesoEmpleados from '@/components/AccesoEmpleados';
 
 const RECETAS_SOCKET: { label: string; text: string; komenu?: string }[] = [
-  { label: 'fatto in casa, ogni giorno', text: 'la pasta si fa stamattina, il ragù si fa ieri e oggi si mangia.' },
-  { label: 'segreti di nonna Rosina', text: 'nessuna ricetta scritta — si eredita, si discute in tavola, si corregge col tempo.' },
-  { label: 'dal 1987, senza fretta', text: 'chi ha fretta, mangia male: questo non era scritto nei libri, stava sul retro di una bottiglia.' },
-  { label: 'vino della casa e buona compagnia', text: "si beve in caraffa, come in casa: pane, olio e un po' di chiacchiere che durano stamattina." },
-  { label: 'oggi: il solito, il solito è eccellente', text: 'la pizza non è sul menù, ma se qualcuno te la raccomanda, fai una domanda al cameriere.' },
+  { label: 'hecho en casa, cada día', text: 'la pasta se hace esta mañana, el ragú se hizo ayer y hoy se come.' },
+  { label: 'secretos de la abuela Rosina', text: 'ninguna receta escrita — se hereda, se discute en la mesa y se corrige con el tiempo.' },
+  { label: 'desde 1987, sin prisa', text: 'quien tiene prisa, come mal: esto no estaba escrito en los libros, estaba en el reverso de una botella.' },
+  { label: 'vino de la casa y buena compañía', text: 'se bebe en jarra, como en casa: pan, aceite y un poco de charla que dura hasta la mañana.' },
+  { label: 'hoy: lo de siempre, y lo de siempre es excelente', text: 'la pizza no está en el menú, pero si alguien te la recomienda, pregúntale al camarero.' },
 ];
 
 const MARQUEE_WORDS = [
-  'pasta fresca', 'fatta a mano', 'vino della casa', 'nonna partigiana',
-  'ragù lento', 'al parmigiano', 'ogni giorno', 'dal 1987',
-  'fichi secchi', 'al basilico', 'al pomodoro', 'senza fretta',
+  'pasta fresca', 'hecha a mano', 'vino de la casa', 'receta de la abuela',
+  'ragú lento', 'al parmesano', 'cada día', 'desde 1987',
+  'higos secos', 'albahaca', 'al tomate', 'sin prisa',
 ].map(w => w.toUpperCase());
 
 export default function MenuPublicoPage() {
@@ -53,7 +53,7 @@ function MenuPublicoContent() {
     <div>
       {/* ============ MARQUEE + ENCABEZADO ============ */}
       <section className="rv-menu-cabecera">
-        <div className="rv-marquee" aria-label="Palabras de la casa en italiano">
+        <div className="rv-marquee" aria-label="Palabras de la casa">
           <span className="rv-marquee-movimiento">
             {MARQUEE_WORDS.join(' ◆ ')} ◆ {MARQUEE_WORDS.join(' ◆ ')}
           </span>
@@ -61,11 +61,11 @@ function MenuPublicoContent() {
         <div className="container">
           <p className="rv-eyebrow rv-eyebrow-claro">La carta</p>
           <h1 className="rv-menu-marca">La <span>Carta</span></h1>
-          <p className="rv-menu-sub">il menù del giorno — fatto in casa</p>
+          <p className="rv-menu-sub">el menú del día — hecho en casa</p>
           <p className="rv-carta-villancico">
             {RECETAS_SOCKET[recetaActual]?.label} —{' '}
             <span className="rv-mano rv-mano-crema" style={{ display: 'inline-block', transform: 'rotate(2deg)' }}>
-              {RECETAS_SOCKET[recetaActual]?.komenu ?? 'scritto da nonna Rosina'}
+              {RECETAS_SOCKET[recetaActual]?.komenu ?? 'escrito por la abuela Rosina'}
             </span>
           </p>
         </div>
@@ -92,25 +92,25 @@ function MenuPublicoContent() {
       <section className="rv-conto-seccion">
         <div className="container">
           <div className="rv-conto">
-            <span className="rv-timbre">Fatto con amore</span>
+            <span className="rv-timbre">Hecho con amor</span>
             <header className="rv-conto-cabecera">
               <p className="rv-conto-nombre">
-                Trattoria <em>del Vicolo</em> — Conto
+                Trattoria <em>del Vicolo</em> — Cuenta
               </p>
-              <p className="rv-conto-datos">N. 1987 · Via dei Fiori, 12 · Firenze · dal 1987</p>
+              <p className="rv-conto-datos">N.º 1987 · Via dei Fiori, 12 · Firenze · desde 1987</p>
             </header>
             <div className="rv-conto-fila">
-              <span>Pasta fresca fatta a mano</span>
+              <span>Pasta fresca hecha a mano</span>
               <span className="puntos"></span>
-              <span className="valor">gentilezza</span>
+              <span className="valor">gentileza</span>
             </div>
             <div className="rv-conto-fila">
-              <span>Vino della casa</span>
+              <span>Vino de la casa</span>
               <span className="puntos"></span>
-              <span className="valor">tempo per parlare</span>
+              <span className="valor">tiempo para hablar</span>
             </div>
             <div className="rv-conto-fila">
-              <span>Tiramisù della nonna</span>
+              <span>Tiramisú de la abuela</span>
               <span className="puntos"></span>
               <span className="valor">sobremesa</span>
             </div>
@@ -121,7 +121,7 @@ function MenuPublicoContent() {
             </div>
             <p className="rv-conto-corte">✂ corta aquí</p>
             <p className="rv-conto-total">
-              Totale: una cena <em>in famiglia</em>
+              Total: una cena <em>en familia</em>
             </p>
             <p className="rv-conto-pie">
               se aceptan sonrisas · propina: un buen chiste
@@ -134,7 +134,7 @@ function MenuPublicoContent() {
                 <i className="bi bi-qr-code-scan"></i> Pedir desde la mesa
               </Link>
             </div>
-            <p className="rv-conto-gracias">grazie, e tornate presto — Massimo</p>
+            <p className="rv-conto-gracias">gracias, y vuelvan pronto — Massimo</p>
           </div>
           <div className="text-center">
             <AccesoEmpleados className="rv-conto-empleados-dark" />

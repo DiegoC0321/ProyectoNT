@@ -2,7 +2,6 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import type { RolNombre } from '@/models/types';
 
@@ -14,7 +13,12 @@ const RUTA_POR_ROL: Record<RolNombre, string> = {
   INVITADO: '/cliente',
 };
 
-export default function LoginPage() {
+/**
+ * Formulario de inicio de sesión real de la plataforma. La página se sirve
+ * únicamente en la ruta oculta (ver src/app/acceso/[llave]/page.tsx); la
+ * antigua `/login` ya no existe.
+ */
+export default function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -41,12 +45,12 @@ export default function LoginPage() {
       <div className="rv-formulario-card">
         <div className="card-header">
           <div className="text-center">
-            <p className="rv-eyebrow rv-eyebrow-dark mb-2">Il sistema · accesso</p>
+            <p className="rv-eyebrow rv-eyebrow-dark mb-2">El sistema · acceso</p>
             <h2 className="rv-subrayado" style={{ fontSize: '1.8rem', textAlign: 'center' }}>
-              Ingresso
+              Ingreso
             </h2>
             <p className="rv-bajada" style={{ margin: '0.4rem auto 0', maxWidth: '100%' }}>
-              chi ha una chiave, entra — el resto aspetta al bancone
+              quien tiene una llave, entra — el resto espera en la barra
             </p>
           </div>
         </div>
@@ -54,7 +58,7 @@ export default function LoginPage() {
           {error && <div className="alert alert-danger py-2">{error}</div>}
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
-              <label className="form-label">La chiave — email</label>
+              <label className="form-label">Tu correo</label>
               <input
                 type="email"
                 className="form-control"
@@ -65,7 +69,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="mb-3">
-              <label className="form-label">La parola — password</label>
+              <label className="form-label">Tu contraseña</label>
               <input
                 type="password"
                 className="form-control"
@@ -76,23 +80,16 @@ export default function LoginPage() {
               />
             </div>
             <button type="submit" className="btn btn-warning w-100" disabled={cargando}>
-              {cargando ? 'aspetta... si entra' : 'Entrar'}
+              {cargando ? 'espera... entrando' : 'Entrar'}
             </button>
           </form>
           <hr style={{ borderColor: 'rgba(43, 28, 14, 0.3)' }} />
-          <p className="small text-muted mb-1">Chiavi di prova:</p>
+          <p className="small text-muted mb-1">Claves de prueba:</p>
           <ul className="small text-muted mb-0">
-            <li>Cliente — cliente@demo.com / Cliente123!</li>
             <li>Mesero — mesero@demo.com / Mesero123!</li>
             <li>Cocina — cocina@demo.com / Cocina123!</li>
             <li>Administrador — admin@demo.com / Admin123!</li>
           </ul>
-          <p className="rv-accentos-demo mt-3">
-            per il personale: cassa, cucina, sala — uno per ruolo.
-          </p>
-          <p className="text-center mt-3 mb-0">
-            Non hai la chiave? <Link href="/register">Farsela dare dal cuoco</Link>
-          </p>
         </div>
       </div>
     </div>

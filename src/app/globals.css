@@ -1395,6 +1395,11 @@ a {
   100% { transform: translateX(-50%); }
 }
 
+@keyframes rv-escaneo-desliza {
+  0% { transform: translateY(-70px); }
+  100% { transform: translateY(70px); }
+}
+
 .rv-la-carta-pie {
   font-family: var(--font-mano);
   font-size: 1.4rem;

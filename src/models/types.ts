@@ -44,6 +44,12 @@ export interface Platillo {
   updated_at: string;
 }
 
+/** Platillo con métricas de venta y narrativa de IA (recomendaciones). */
+export interface PlatoRecomendado extends Platillo {
+  veces_vendido: number;
+  motivacion: string;
+}
+
 export type EstadoMesa = 'LIBRE' | 'OCUPADA' | 'PEDIDO EN CURSO';
 
 export interface Mesa {
@@ -85,6 +91,7 @@ export interface Pedido {
 export interface Ingrediente {
   id: number;
   nombre: string;
+  codigo_de_barras?: string | null;
   unidad_medida: string;
 }
 
@@ -92,6 +99,7 @@ export interface Inventario {
   id: number;
   ingrediente_id: number;
   ingrediente_nombre?: string;
+  codigo_de_barras?: string | null;
   unidad_medida?: string;
   cantidad_actual: number;
   cantidad_minima: number;

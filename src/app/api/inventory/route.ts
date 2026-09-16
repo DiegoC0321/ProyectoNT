@@ -14,14 +14,15 @@ export async function POST(req: NextRequest) {
   if ('error' in auth) return auth.error;
 
   try {
-    const { nombre, unidad_medida, cantidad_inicial, cantidad_minima } = await req.json();
+    const { nombre, unidad_medida, cantidad_inicial, cantidad_minima, codigo_de_barras } = await req.json();
     if (!nombre) return NextResponse.json({ error: 'El nombre del insumo es obligatorio.' }, { status: 400 });
 
     const inventario = await registrarIngrediente(
       nombre,
       unidad_medida ?? 'unidad',
       Number(cantidad_inicial ?? 0),
-      Number(cantidad_minima ?? 0)
+      Number(cantidad_minima ?? 0),
+      codigo_de_barras
     );
     return NextResponse.json({ inventario }, { status: 201 });
   } catch (err) {

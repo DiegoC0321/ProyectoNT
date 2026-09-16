@@ -4,7 +4,7 @@ import { useEffect, useState, FormEvent } from 'react';
 import { userService } from '@/services/otherServices';
 import type { UsuarioPublico, RolNombre } from '@/models/types';
 
-const ROLES_ASIGNABLES: RolNombre[] = ['MESERO', 'COCINA', 'ADMINISTRADOR'];
+const ROLES_ASIGNABLES: RolNombre[] = ['CLIENTE', 'MESERO', 'COCINA', 'ADMINISTRADOR'];
 
 export default function AdminUsuariosPage() {
   const [usuarios, setUsuarios] = useState<UsuarioPublico[]>([]);
@@ -29,7 +29,7 @@ export default function AdminUsuariosPage() {
     e.preventDefault();
     setError('');
     try {
-      await userService.crearEmpleado(nombre, email, password, rol);
+      await userService.crearUsuario(nombre, email, password, rol);
       setNombre('');
       setEmail('');
       setPassword('');
@@ -55,16 +55,16 @@ export default function AdminUsuariosPage() {
     <div>
       <div className="rv-panel-cabecera">
         <div className="container">
-          <p className="rv-eyebrow rv-eyebrow-dark">Il sistema · personale</p>
+          <p className="rv-eyebrow rv-eyebrow-dark">El sistema · el personal</p>
           <h1 className="rv-panel-nombre">Usuarios y <em>roles</em></h1>
-          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>gestisci il personale — ogni ruolo è importante</p>
+          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>solo el administrador crea cuentas — para todos</p>
         </div>
       </div>
       <div className="container pb-4 pt-3">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2 className="mb-0" style={{ fontFamily: 'var(--font-display)' }}>Empleados</h2>
+          <h2 className="mb-0" style={{ fontFamily: 'var(--font-display)' }}>Usuarios</h2>
           <button className="rv-btn rv-btn-pomodoro" onClick={() => setMostrarForm((v) => !v)}>
-            <i className="bi bi-person-plus"></i> Nuevo empleado
+            <i className="bi bi-person-plus"></i> Nuevo usuario
           </button>
         </div>
 
@@ -109,7 +109,7 @@ export default function AdminUsuariosPage() {
             </div>
           </div>
           <button type="submit" className="btn btn-warning mt-3">
-            Crear empleado
+            Crear usuario
           </button>
         </form>
       )}
@@ -117,7 +117,8 @@ export default function AdminUsuariosPage() {
       {cargando ? (
         <p className="text-muted">Cargando usuarios...</p>
       ) : (
-        <table className="table align-middle">
+        <div className="table-responsive">
+          <table className="table align-middle">
           <thead>
             <tr>
               <th>Nombre</th>
@@ -157,6 +158,7 @@ export default function AdminUsuariosPage() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
       </div>
     </div>

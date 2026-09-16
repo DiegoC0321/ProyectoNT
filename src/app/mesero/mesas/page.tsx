@@ -29,9 +29,9 @@ export default function MesasPage() {
     <div>
       <div className="rv-panel-cabecera">
         <div className="container">
-          <p className="rv-eyebrow rv-eyebrow-dark">Il sistema · tavoli</p>
-          <h1 className="rv-panel-nombre">Mesas <em>della sala</em></h1>
-          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>ogni tavolo è pronto — serve con calma</p>
+          <p className="rv-eyebrow rv-eyebrow-dark">El sistema · mesas</p>
+          <h1 className="rv-panel-nombre">Mesas <em>de la sala</em></h1>
+          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>cada mesa está lista — servir con calma</p>
         </div>
       </div>
       <div className="container pb-4 pt-3">

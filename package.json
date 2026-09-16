@@ -11,23 +11,25 @@
     "db:setup": "node scripts/db-setup.mjs"
   },
   "dependencies": {
-    "next": "14.2.35",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "@zxing/browser": "^0.2.1",
+    "@zxing/library": "^0.23.0",
+    "bcryptjs": "2.4.3",
     "bootstrap": "5.3.3",
     "bootstrap-icons": "1.11.3",
-    "pg": "8.13.1",
     "jsonwebtoken": "9.0.2",
-    "bcryptjs": "2.4.3",
+    "next": "14.2.35",
+    "pg": "8.13.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "zod": "3.23.8"
   },
   "devDependencies": {
-    "typescript": "5.5.4",
+    "@types/bcryptjs": "2.4.6",
+    "@types/jsonwebtoken": "9.0.6",
     "@types/node": "20.14.15",
+    "@types/pg": "8.11.10",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
-    "@types/pg": "8.11.10",
-    "@types/jsonwebtoken": "9.0.6",
-    "@types/bcryptjs": "2.4.6"
+    "typescript": "5.5.4"
   }
 }

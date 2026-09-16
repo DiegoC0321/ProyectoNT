@@ -39,9 +39,9 @@ export default function PedidosCocinaPage() {
     <div>
       <div className="rv-panel-cabecera">
         <div className="container">
-          <p className="rv-eyebrow rv-eyebrow-dark">Il sistema · cucina</p>
+          <p className="rv-eyebrow rv-eyebrow-dark">El sistema · cocina</p>
           <h1 className="rv-panel-nombre">Pedidos <em>entrantes</em></h1>
-          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>ogni ordine è pronto — serve senza fretta</p>
+          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>cada pedido a su tiempo — se sirve sin prisa</p>
         </div>
       </div>
       <div className="container pb-4 pt-3">

@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthUser } from '@/middleware/auth';
 import { recomendarPlatillos } from '@/controllers/recommendationController';
 
-/** RF02 — Recomendaciones personalizadas. Funciona con o sin sesión iniciada. */
+/**
+ * RF02 — Recomendaciones de la casa. Sin sesión.
+ *
+ * Base: lo más pedido de la última semana. Si AI_API_KEY está configurada, un
+ * LLM (endpoint OpenAI-compatible) ordena los top y escribe el mensaje y las
+ * motivaciones con el tono de la casa. Respuesta:
+ *   { mensaje: string, recomendaciones: PlatoRecomendado[] }
+ */
 export async function GET(req: NextRequest) {
-  const user = getAuthUser(req); // puede ser null (usuario anónimo)
   const { searchParams } = new URL(req.url);
-  const limite = Number(searchParams.get('limite') ?? 4);
+  const limite = Math.min(Math.max(Number(searchParams.get('limite') ?? 4), 1), 8);
 
-  const clienteId = user && user.rol === 'CLIENTE' ? user.sub : null;
-  const recomendaciones = await recomendarPlatillos(clienteId, limite);
+  const resultado = await recomendarPlatillos(limite);
 
-  return NextResponse.json({ recomendaciones });
+  return NextResponse.json({ mensaje: resultado.mensaje, recomendaciones: resultado.items });
 }

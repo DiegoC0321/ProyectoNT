@@ -41,12 +41,12 @@ export default function CocinaDashboardPage() {
     <div>
       <div className="rv-panel-cabecera">
         <div className="container">
-          <p className="rv-eyebrow rv-eyebrow-dark">Il sistema · cucina</p>
+          <p className="rv-eyebrow rv-eyebrow-dark">El sistema · cocina</p>
           <h1 className="rv-panel-nombre">
             <em>{usuario?.nombre ?? 'Cocina'}</em>
           </h1>
           <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.5rem', margin: '0.7rem 0 0' }}>
-            oggi: pasta fresca, ragù lento, e senza fretta
+            hoy: pasta fresca, ragú lento y sin prisa
           </p>
         </div>
       </div>
@@ -55,7 +55,7 @@ export default function CocinaDashboardPage() {
         {/* Contadores */}
         <div className="rv-listado-platos mb-4" style={{ maxWidth: 600, margin: '1.5rem auto' }}>
           <div className="rv-listado-cabecera">
-            <p className="rv-eyebrow mb-1">Coda ordini</p>
+            <p className="rv-eyebrow mb-1">Cola de pedidos</p>
             <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: '700', fontSize: '1.3rem' }}>
               Cola de pedidos
             </h3>
@@ -88,7 +88,7 @@ export default function CocinaDashboardPage() {
 
         {/* Pedidos pendientes */}
         <div className="rv-mano rv-mano-pomodoro" style={{ fontSize: '1.5rem', textAlign: 'center', margin: '2rem 0 1rem', transform: 'rotate(-1.5deg)' }}>
-          ordini da preparare — oggi come ogni giorno
+          pedidos por preparar — hoy como cada día
         </div>
 
         {cargando ? (
@@ -99,10 +99,10 @@ export default function CocinaDashboardPage() {
           <div className="rv-listado-platos" style={{ maxWidth: 420, margin: '0 auto' }}>
             <div className="rv-listado-cuerpo" style={{ textAlign: 'center', padding: '2rem 1.5rem' }}>
               <span className="rv-mano rv-mano-oliva" style={{ fontSize: '1.5rem', display: 'block' }}>
-                nessun ordine pendiente — si riposa la cucina
+                sin pedidos pendientes — la cocina descansa
               </span>
               <p className="small text-muted" style={{ fontFamily: 'var(--font-cuerpo)', marginTop: '0.5rem' }}>
-                i clienti ancora non hanno ordinato — quando arrivano, tutto è pronto
+                los clientes aún no han pedido — cuando llegan, todo está listo
               </p>
             </div>
           </div>
@@ -169,7 +169,7 @@ export default function CocinaDashboardPage() {
 
         <div className="text-center mt-4">
           <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.25rem', transform: 'rotate(-1deg)' }}>
-            la casa si mangia oggi — e domani si mangia di nuovo
+            la casa se come hoy — y mañana se come otra vez
           </p>
         </div>
       </div>

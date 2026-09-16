@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { q, qOne } from '@/lib/db';
+import { qOne } from '@/lib/db';
 import { signToken } from '@/lib/jwt';
 import type { RolNombre, UsuarioPublico } from '@/models/types';
 
@@ -34,31 +34,6 @@ async function obtenerUsuarioRowPorEmail(email: string): Promise<UsuarioRow | un
   return qOne<UsuarioRow>(USUARIO_QUERY + ' WHERE u.email = ?', [email]);
 }
 
-/** RF03 — Registro de clientes (auto-registro siempre crea rol CLIENTE) */
-export async function registrarCliente(nombre: string, email: string, password: string) {
-  const existente = await qOne('SELECT id FROM usuario WHERE email = ?', [email]);
-  if (existente) {
-    throw new Error('Ya existe una cuenta registrada con este correo electrónico.');
-  }
-
-  const rolCliente = await qOne<{ id: number }>("SELECT id FROM rol WHERE nombre = 'CLIENTE'");
-  if (!rolCliente) throw new Error('Rol CLIENTE no configurado.');
-
-  const hash = bcrypt.hashSync(password, 10);
-  const ids = await q<{ id: number }>(
-    'INSERT INTO usuario (nombre, email, password_hash, rol_id) VALUES (?, ?, ?, ?) RETURNING id',
-    [nombre, email, hash, rolCliente.id]
-  );
-  const clienteId = ids[0].id;
-
-  const row = await obtenerUsuarioRowPorId(clienteId);
-  if (!row) throw new Error('No se pudo crear el usuario.');
-
-  const usuario = toPublico(row);
-  const token = signToken({ sub: usuario.id, email: usuario.email, rol: usuario.rol, nombre: usuario.nombre });
-  return { usuario, token };
-}
-
 /** Inicio de sesión válido para cualquier rol */
 export async function iniciarSesion(email: string, password: string) {
   const row = await obtenerUsuarioRowPorEmail(email);
@@ -66,7 +41,8 @@ export async function iniciarSesion(email: string, password: string) {
     throw new Error('Credenciales inválidas.');
   }
   if (!row.activo) {
-    throw new Error('Este usuario ha sido desactivado. Contacta al administrador.');
+    // Mensaje idéntico al de credenciales malas: no revelar el estado de la cuenta.
+    throw new Error('Credenciales inválidas.');
   }
 
   const passwordValida = bcrypt.compareSync(password, row.password_hash);

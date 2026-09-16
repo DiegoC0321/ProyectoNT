@@ -33,7 +33,7 @@ const workSans = Work_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Trattoria del Vicolo — Cucina italiana dal 1987',
+  title: 'Trattoria del Vicolo — Cocina italiana desde 1987',
   description:
     'Trattoria italiana de verdad: pasta fresca hecha a mano, vino de la casa y pedidos desde la mesa con menú digital.',
 };
@@ -57,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <p className="rv-footer-tagline">Cucina italiana dal 1987 · Toscana</p>
                   </div>
                   <div className="rv-footer-col">
-                    <p className="rv-footer-titulo">Dove siamo</p>
+                    <p className="rv-footer-titulo">Dónde estamos</p>
                     <p>
                       Via dei Fiori, 12
                       <br />
@@ -65,7 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     </p>
                   </div>
                   <div className="rv-footer-col">
-                    <p className="rv-footer-titulo">Orario</p>
+                    <p className="rv-footer-titulo">Horario</p>
                     <p>
                       Lun – Dom
                       <br />
@@ -73,14 +73,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     </p>
                   </div>
                   <div className="rv-footer-col">
-                    <p className="rv-footer-titulo">Il sistema</p>
+                    <p className="rv-footer-titulo">El sistema</p>
                     <FooterEnlaces />
                   </div>
                 </div>
                 <div className="rv-footer-bottom">
                   <span>Trattoria del Vicolo &copy; {new Date().getFullYear()}</span>
                   <span className="rv-footer-fatto">
-                    Fatto con amore <i className="bi bi-heart-fill"></i>
+                    Hecho con amor <i className="bi bi-heart-fill"></i>
                   </span>
                 </div>
               </div>

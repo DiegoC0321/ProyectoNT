@@ -4,9 +4,10 @@ import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { pedidoFinalizado, esPersonal } from '@/lib/flujoCliente';
+import { RUTA_LOGIN } from '@/lib/acceso';
 
 /** Rutas donde el bloqueo no aplica (acceso del personal + pantalla terminal). */
-const RUTAS_LIBRES = ['/login', '/cliente/confirmacion'];
+const RUTAS_LIBRES = [RUTA_LOGIN, '/cliente/confirmacion'];
 
 /**
  * Tras un pedido, el flujo del cliente termina: todo visitante (sin sesión,

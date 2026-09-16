@@ -1,5 +1,5 @@
 import { api } from '@/services/api';
-import type { Mesa, EstadoMesa, Inventario, Platillo, UsuarioPublico, RolNombre } from '@/models/types';
+import type { Mesa, EstadoMesa, Inventario, Platillo, PlatoRecomendado, UsuarioPublico, RolNombre } from '@/models/types';
 
 export const tableService = {
   listar: () => api.get<{ mesas: Mesa[] }>('/tables'),
@@ -9,8 +9,22 @@ export const tableService = {
 
 export const inventoryService = {
   listar: () => api.get<{ inventario: Inventario[] }>('/inventory'),
-  registrar: (nombre: string, unidad_medida: string, cantidad_inicial: number, cantidad_minima: number) =>
-    api.post<{ inventario: Inventario[] }>('/inventory', { nombre, unidad_medida, cantidad_inicial, cantidad_minima }),
+  registrar: (
+    nombre: string,
+    unidad_medida: string,
+    cantidad_inicial: number,
+    cantidad_minima: number,
+    codigo_de_barras?: string
+  ) =>
+    api.post<{ inventario: Inventario[] }>('/inventory', {
+      nombre,
+      unidad_medida,
+      cantidad_inicial,
+      cantidad_minima,
+      codigo_de_barras: codigo_de_barras ?? '',
+    }),
+  agregarPorCodigo: (codigo_de_barras: string, cantidad: number) =>
+    api.post<{ inventario: Inventario[] }>('/inventory/agregar', { codigo_de_barras, cantidad }),
   actualizarCantidad: (id: number, cantidad_actual: number) =>
     api.put<{ inventario: Inventario[] }>(`/inventory/${id}`, { cantidad_actual }),
 };
@@ -30,12 +44,13 @@ export const reportService = {
 };
 
 export const recommendationService = {
-  obtener: (limite = 4) => api.get<{ recomendaciones: Platillo[] }>(`/recommendations?limite=${limite}`),
+  obtener: (limite = 4) =>
+    api.get<{ mensaje: string; recomendaciones: PlatoRecomendado[] }>(`/recommendations?limite=${limite}`),
 };
 
 export const userService = {
   listar: () => api.get<{ usuarios: UsuarioPublico[] }>('/users'),
-  crearEmpleado: (nombre: string, email: string, password: string, rol: RolNombre) =>
+  crearUsuario: (nombre: string, email: string, password: string, rol: RolNombre) =>
     api.post<{ usuario: UsuarioPublico }>('/users', { nombre, email, password, rol }),
   actualizar: (id: number, data: Partial<{ nombre: string; email: string; rol: RolNombre; activo: boolean }>) =>
     api.put<{ usuario: UsuarioPublico }>(`/users/${id}`, data),

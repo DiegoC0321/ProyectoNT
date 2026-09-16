@@ -101,10 +101,15 @@ CREATE TABLE IF NOT EXISTS detalle_pedido (
 -- Ingredientes
 -- -------------------------------------------------
 CREATE TABLE IF NOT EXISTS ingrediente (
-  id            SERIAL PRIMARY KEY,
-  nombre        TEXT NOT NULL UNIQUE,
-  unidad_medida TEXT NOT NULL DEFAULT 'unidad'
+  id               SERIAL PRIMARY KEY,
+  nombre           TEXT NOT NULL UNIQUE,
+  codigo_de_barras TEXT,
+  unidad_medida    TEXT NOT NULL DEFAULT 'unidad'
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ingrediente_codigo_barras
+  ON ingrediente(codigo_de_barras)
+  WHERE codigo_de_barras IS NOT NULL;
 
 -- -------------------------------------------------
 -- Relación N:M platillo <-> ingrediente (receta)

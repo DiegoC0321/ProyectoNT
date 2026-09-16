@@ -24,9 +24,9 @@ function ClienteMenuContent() {
       {/* Cabecera */}
       <section className="rv-menu-cabecera" style={{ padding: '3rem 0' }}>
         <div className="container">
-          <p className="rv-eyebrow rv-eyebrow-claro">Il menù</p>
+          <p className="rv-eyebrow rv-eyebrow-claro">El menú</p>
           <h1 className="rv-menu-marca">La <span>Carta</span></h1>
-          <p className="rv-menu-sub">il menù del giorno — fatto in casa</p>
+          <p className="rv-menu-sub">el menú del día — hecho en casa</p>
         </div>
       </section>
 

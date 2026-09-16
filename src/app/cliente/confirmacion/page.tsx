@@ -56,7 +56,7 @@ function ConfirmacionContent() {
           <h1 className="rv-menu-marca">
             Grazie! <span>Pedido</span> recibido
           </h1>
-          <p className="rv-menu-sub">il tuo ordine sta arrivando in cucina</p>
+          <p className="rv-menu-sub">tu pedido va camino a la cocina</p>
         </div>
       </section>
 
@@ -65,7 +65,7 @@ function ConfirmacionContent() {
           <div className="text-center py-5">
             <div className="spinner-border text-warning" role="status" />
             <p className="rv-mano rv-mano-oliva mt-3" style={{ fontSize: '1.3rem' }}>
-              preparando il conto...
+              preparando la cuenta...
             </p>
           </div>
         ) : error ? (
@@ -118,7 +118,7 @@ function ConfirmacionContent() {
                 <hr style={{ borderStyle: 'dashed', color: 'rgba(43, 28, 14, 0.35)', margin: '1rem 0' }} />
                 <div className="d-flex justify-content-between align-items-center">
                   <span className="rv-mano rv-mano-oliva" style={{ fontSize: '1.1rem', margin: 0 }}>
-                    Totale
+                    Total
                   </span>
                   <h4 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, margin: 0, fontSize: '1.6rem' }}>
                     {formatearMoneda(pedido.total)}
@@ -129,7 +129,7 @@ function ConfirmacionContent() {
 
             <div className="text-center">
               <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.2rem', margin: '0.6rem 0 2rem' }}>
-                la tua esperienza termina qui — grazie e buon appetito
+                tu pedido queda cerrado aquí — gracias y buen provecho
               </p>
             </div>
           </>

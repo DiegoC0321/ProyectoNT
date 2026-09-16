@@ -88,7 +88,7 @@ restaurant-system/
 ├── supabase/                       # schema.sql (PostgreSQL para Supabase)
 ├── scripts/                        # db-setup.mjs (aplica esquema + seed)
 ├── public/img/                     # Imágenes estáticas de ejemplo
-├── .env.example
+├── .env.local                      # Configuración local (gitignored, ver sección 3)
 ├── package.json
 └── README.md
 ```
@@ -141,6 +141,23 @@ pedido 1───N notificacion
    para restaurar la sesión a partir de la cookie, sin exponer el token a
    JavaScript (protección contra XSS).
 5. `POST /api/auth/logout` limpia la cookie del lado del servidor.
+
+**Acceso oculto y anti fuerza bruta** (medidas aplicadas):
+- La **página** de login ya no vive en `/login` (esa ruta da **404**). Se sirve en
+  una ruta oculta configurable: `NEXT_PUBLIC_STAFF_LOGIN_PATH` (por defecto
+  `/acceso/operador`). Cambiarla en `.env.local` y recompilar mueve el acceso
+  sin tocar código.
+- El cliente que pide desde la mesa **nunca ve** un enlace de inicio de sesión
+  (ni en navbar ni en el footer); solo el personal ya autenticado ve un acceso
+  rápido, y quien no tiene sesión entra escribiendo la ruta oculta.
+- `POST /api/auth/login` tiene **rate-limit en memoria por IP**: 5 intentos
+  fallidos por ventana de 15 min bloquean la IP con backoff exponencial
+  (15 min → … → 24 h máximo), respondiendo `429` + `Retry-After`.
+- El error es siempre *"Credenciales inválidas."* y las respuestas fallidas
+  tardan lo mismo (~450 ms): no se puede enumerar usuarios ni medir fuerza por
+  timing. La URL oculta no es un secreto real (aparece en `/register`); la
+  barrera de verdad es el rate-limit. Para producción fuerte se recomienda un
+  rate-limit de infraestructura (Cloudflare/Upstash/Redis).
 
 ---
 
@@ -227,7 +244,8 @@ login, exigen un JWT válido y validan el rol correspondiente.
 ```
 /                → Landing pública
 /menu            → Menú digital (sin sesión)
-/login /register → Autenticación
+/acceso/operador → Acceso personal/clientes con cuenta (ruta oculta, configurable en NEXT_PUBLIC_STAFF_LOGIN_PATH; /login da 404)
+/register        → Registro de clientes
 
 /cliente                    → Dashboard cliente
 /cliente/menu               → Menú + agregar al carrito
@@ -280,11 +298,18 @@ de extremo a extremo. Se diseñó con un contrato estable
 # 1. Instalar dependencias
 npm install
 
-# 2. Copiar variables de entorno
-cp .env.example .env.local
-#   -> reemplaza DATABASE_URL por la cadena de conexión de tu Supabase
-#   (Supabase Dashboard -> Project Settings -> Database -> Connection string;
-#    recomienda el pooler transaccional puerto 6543)
+# 2. Crear el archivo de configuración única `.env.local` (hay que crearlo a mano):
+#   DATABASE_URL=postgresql://postgres.<TU-REF>:<TU-PASSWORD>@<TU-HOST>.pooler.supabase.com:6543/postgres?pgbouncer=true&sslmode=require
+#   JWT_SECRET=<una-clave-secreta-larga>
+#   NEXT_PUBLIC_STAFF_LOGIN_PATH=operador   # ruta oculta del login (opcional, por defecto "operador")
+
+#   # IA opcional para las recomendaciones de la carta (endpoint OpenAI-compatible:
+#   # OpenAI, DeepSeek, Groq, Mistral... o Ollama local con AI_BASE_URL=http://localhost:11434/v1)
+#   AI_API_KEY=<tu-clave>          # sin clave, funciona igual con el fallback "más pedidos de la semana"
+#   AI_BASE_URL=https://api.openai.com/v1   # opcional
+#   AI_MODEL=gpt-4o-mini                    # opcional (p.ej. deepseek-chat, llama3)
+#   # RECO_IA_TTL_MINUTOS=180    # opcional: cuánto dura el caché de la narrativa de IA (por defecto 180)
+#   # AI_TIMEOUT_MS=12000         # opcional: límite de espera a la IA; si se pasa, se sirve el fallback
 
 # 3. Preparar la base de datos en Supabase (crea el esquema + datos demo)
 npm run db:setup
@@ -334,7 +359,7 @@ npm run start
 
 - [x] RF01 Consulta de menú digital (`/menu`, `/api/menu`)
 - [x] RF02 Recomendaciones personalizadas (`/cliente/recomendaciones`)
-- [x] RF03 Registro y autenticación (`/register`, `/login`, JWT)
+- [x] RF03 Registro y autenticación (`/register`, ruta oculta `/acceso/*`, JWT)
 - [x] RF04 Realización de pedidos con resumen y confirmación (`/cliente/carrito`)
 - [x] RF05 Seguimiento del pedido en 4 estados (`/cliente/pedidos`)
 - [x] RF06 Historial y repetir pedido
@@ -380,7 +405,7 @@ pendiente o mejorable desde una perspectiva de desarrollo de largo plazo:
 | 1 | Proyecto Next.js + TS + Bootstrap + estructura MVW | ✅ Implementada | Correcta y bien adaptada a App Router: los controladores solo corren en servidor y el frontend habla con el backend vía `src/services/*` tipados. Mejorable: aprovechar más Server Components para reducir JS en cliente y estado global. |
 | 2 | Base de datos + modelos | ✅ Implementada | Esquema relacional normalizado (PK/FK, `CHECK`, índices, auditoría, relación N:M) en **PostgreSQL (Supabase)** mediante `supabase/schema.sql`. Migrado desde SQLite: controllers asíncronos sobre `pg`. Mejorable: migraciones versionadas (p. ej. `supabase migrations`) en lugar de un único script idempotente. |
 | 3 | API REST | ✅ Implementada | Recursos y verbos correctos, capa de controladores limpia, errores consistentes `{ error }`. Pendiente: validación centralizada (`zod` está instalado pero sin uso), esquema de respuesta tipado y paginación (aceptable a esta escala). |
-| 4 | JWT + roles y permisos | ✅ Implementada | Doble capa ejecutada con rigor: frontend (UX) y backend (barrera real) con `requireAuth`/`requireRole`; transiciones de pedido modeladas como máquina de estados; `bcrypt` cost 10; cookie `httpOnly` + `sameSite: lax`. Riesgos: `JWT_SECRET` con fallback en dev (forzar variable en producción), añadir `Secure` en HTTPS y rate-limit en `/api/auth/login`. |
+| 4 | JWT + roles y permisos | ✅ Implementada | Doble capa ejecutada con rigor: frontend (UX) y backend (barrera real) con `requireAuth`/`requireRole`; transiciones de pedido modeladas como máquina de estados; `bcrypt` cost 10; cookie `httpOnly` + `sameSite: lax`; **login oculto** (ruta configurable, `/login` → 404) y **rate-limit por IP** (5 fallos/15 min con backoff) + error genérico con delay. Pendiente para producción: forzar `JWT_SECRET`, cookie `Secure` en HTTPS y rate-limit de infraestructura (Cloudflare/Upstash). |
 | 5 | Módulo cliente | ✅ Implementada | RF02–RF06 cubiertos: menú, carrito, seguimiento, repetir pedido y recomendaciones. |
 | 6 | Módulo mesero | ✅ Implementada | RF07/RF08/RF10 completos; el flujo borrador → confirmar está bien diseñado. El refresco es por polling (8 s); con SSE se volvería instantáneo. |
 | 7 | Módulo cocina | ✅ Implementada | RF16/RF17 correctos, orden de llegada respetado, notificaciones a mesero/cliente al quedar LISTO. Polling de 6 s: "tiempo real" aproximado, no push real. |
@@ -394,5 +419,5 @@ pendiente o mejorable desde una perspectiva de desarrollo de largo plazo:
 2. **Tiempo real real**: reemplazar el polling (6–8 s) por **SSE** (`/api/notifications/stream`) para mesero/cocina/cliente.
 3. **Validación centralizada con zod**: esquemas por recurso en las rutas de escritura y errores tipados por endpoint.
 4. **Tests automatizados mínimos**: al menos autenticación (401/403), creación de pedidos y transiciones de estado (validar la máquina de estados).
-5. **Endurecer autenticación**: exigir `JWT_SECRET` en producción y añadir rate-limit en `/api/auth/login`.
+5. **Endurecer autenticación (producción)**: exigir `JWT_SECRET` (sin fallback), cookie `Secure` en HTTPS y rate-limit de infraestructura (Cloudflare/Upstash) además del actual en memoria.
 6. **Opcionales**: descuento automático de inventario al confirmar el pedido y migraciones versionadas de esquema.

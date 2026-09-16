@@ -26,12 +26,12 @@ export default function MeseroDashboardPage() {
     <div>
       <div className="rv-panel-cabecera">
         <div className="container">
-          <p className="rv-eyebrow rv-eyebrow-dark">Il sistema · la sala</p>
+          <p className="rv-eyebrow rv-eyebrow-dark">El sistema · la sala</p>
           <h1 className="rv-panel-nombre">
             <em>{usuario?.nombre ?? 'Mesero'}</em>
           </h1>
           <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.5rem', margin: '0.7rem 0 0' }}>
-            un tavolo per volta — e il resto segue
+            una mesa a la vez — el resto sigue
           </p>
         </div>
       </div>
@@ -40,7 +40,7 @@ export default function MeseroDashboardPage() {
         {/* Resumen de mesas */}
         <div className="rv-listado-platos mb-4" style={{ maxWidth: 500, margin: '1.5rem auto' }}>
           <div className="rv-listado-cabecera">
-            <p className="rv-eyebrow mb-1">Stato tavoli</p>
+            <p className="rv-eyebrow mb-1">Estado de mesas</p>
             <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: '700', fontSize: '1.3rem' }}>
               Estado de las mesas
             </h3>
@@ -66,7 +66,7 @@ export default function MeseroDashboardPage() {
 
         {/* Accesos rápidos */}
         <div className="rv-mano rv-mano-pomodoro" style={{ fontSize: '1.5rem', textAlign: 'center', margin: '2rem 0 1rem', transform: 'rotate(-1.5deg)' }}>
-          accedi rapidamente — ogni tavolo è pronto
+          acceso rápido — cada mesa está lista
         </div>
 
         <div className="row g-4">
@@ -122,7 +122,7 @@ export default function MeseroDashboardPage() {
 
         <div className="text-center mt-4">
           <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.25rem', transform: 'rotate(-1deg)' }}>
-            la carta è sul tavolo — oggi come ieri
+            la carta está en la mesa — hoy como ayer
           </p>
         </div>
       </div>

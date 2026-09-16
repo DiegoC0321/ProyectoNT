@@ -84,9 +84,9 @@ export default function AdminMenuPage() {
     <div>
       <div className="rv-panel-cabecera">
         <div className="container">
-          <p className="rv-eyebrow rv-eyebrow-dark">Il sistema · il menù</p>
+          <p className="rv-eyebrow rv-eyebrow-dark">El sistema · el menú</p>
           <h1 className="rv-panel-nombre">Gestionar <em>carta</em></h1>
-          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>aggiungi, modifica, togli — il menù è tuo</p>
+          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>agrega, modifica, quita — el menú es tuyo</p>
         </div>
       </div>
       <div className="container pb-4 pt-3">
@@ -168,7 +168,8 @@ export default function AdminMenuPage() {
       {cargando ? (
         <p className="text-muted">Cargando menú...</p>
       ) : (
-        <table className="table align-middle">
+        <div className="table-responsive">
+          <table className="table align-middle">
           <thead>
             <tr>
               <th>Nombre</th>
@@ -206,6 +207,7 @@ export default function AdminMenuPage() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
       </div>
     </div>

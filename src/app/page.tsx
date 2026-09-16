@@ -115,7 +115,7 @@ const ANUNCIOS = [
   {
     icono: 'bi-stars',
     titulo: 'Recomendaciones',
-    texto: 'Un camarero que te conoce: sugerencias según lo que ya has pedido.',
+    texto: 'Una IA de la casa elige por ti: lo más pedido de la última semana, arriba en la carta.',
     tag: 'de la casa',
   },
 ];
@@ -127,11 +127,11 @@ export default function HomePage() {
       <section className="rv-gazzetta rv-grano rv-rayado">
         <div className="container rv-gazzetta-inner">
           <div className="rv-fecha">
-            <span>Anno 39 — N. 12</span>
+            <span>Año 39 — N.º 12</span>
             <span>
               Firenze, <em>{FECHA_HOY}</em>
             </span>
-            <span>Edizione straordinaria · gratis con el vino</span>
+            <span>Edición extraordinaria · gratis con el vino</span>
           </div>
 
           <header className="rv-masthead">
@@ -139,7 +139,7 @@ export default function HomePage() {
               IL <span>VICOLO</span>
             </h1>
             <p className="rv-masthead-sub">
-              Gazzetta della Trattoria del Vicolo — cucina, vino e buone maniere
+              Gazzetta della Trattoria del Vicolo — cocina, vino y buenos modales
             </p>
             <div className="rv-masthead-ornamento" aria-hidden="true">
               ✦
@@ -147,25 +147,25 @@ export default function HomePage() {
           </header>
 
           <div className="rv-director">
-            <span>Direttore: Massimo Ferretti</span>
+            <span>Director: Massimo Ferretti</span>
             <span>Redacción: la cocina</span>
             <span>Tirada: dos mesas por noche</span>
           </div>
 
-          <p className="rv-hoy" title="Oggi in cucina">
-            <b>Hoy en cocina:</b> pasta fresca fatta a mano · vino della casa · dolci fatti in casa
+          <p className="rv-hoy" title="Hoy en cocina">
+            <b>Hoy en cocina:</b> pasta fresca hecha a mano · vino de la casa · dulces de la casa
           </p>
 
           {/* ---------- Portada ---------- */}
           <div className="rv-portada">
             <article style={{ position: 'relative' }}>
-              <p className="rv-kicker">Cronaca di cucina</p>
+              <p className="rv-kicker">Crónica de cocina</p>
               <h2 className="rv-titular">
                 La cocina de la nonna <em>vuelve a la mesa</em> — y esta vez lleva el menú en el
                 bolsillo
               </h2>
               <p className="rv-bajada">
-                Treinta y seis años de pasta fresca, ragù lento y ninguna prisa: así se cocina en el
+                Treinta y seis años de pasta fresca, ragú lento y ninguna prisa: así se cocina en el
                 Vicolo desde 1987.
               </p>
 
@@ -193,7 +193,7 @@ export default function HomePage() {
               <figure className="rv-foto-gazzetta">
                 <PlatoPasta />
                 <figcaption>
-                  foto · archivio di famiglia — <em>spaghetti al pomodoro, la ricetta di nonna Rosa</em>
+                  foto · archivo de familia — <em>espaguetis al pomodoro, la receta de la nonna Rosa</em>
                 </figcaption>
               </figure>
 
@@ -207,12 +207,12 @@ export default function HomePage() {
             <aside className="rv-col-lateral">
               <div className="rv-recuadro">
                 <p className="rv-recuadro-titulo">
-                  La carta <span>oggi</span>
+                  La carta <span>de hoy</span>
                 </p>
                 <div className="rv-carta-item">
                   <span className="nombre">
                     Spaghetti al pomodoro
-                    <span className="italiano">la ricetta di nonna</span>
+                    <span className="italiano">la receta de la abuela</span>
                   </span>
                   <span className="puntos"></span>
                   <span className="precio">$24.000</span>
@@ -220,7 +220,7 @@ export default function HomePage() {
                 <div className="rv-carta-item">
                   <span className="nombre">
                     Lasagna <Circulo>della nonna</Circulo>
-                    <span className="italiano">il più amato</span>
+                    <span className="italiano">el más amado</span>
                   </span>
                   <span className="puntos"></span>
                   <span className="precio">$38.000</span>
@@ -241,24 +241,24 @@ export default function HomePage() {
                   <span className="puntos"></span>
                   <span className="precio">$16.000</span>
                 </div>
-                <p className="rv-carta-nota">solo oggi · fresco dal mercato</p>
+                <p className="rv-carta-nota">solo hoy · fresco del mercado</p>
               </div>
 
               <div className="rv-recuadro">
                 <p className="rv-recuadro-titulo">
-                  Il vino della settimana <span>n. 4</span>
+                  El vino de la semana <span>N.º 4</span>
                 </p>
                 <p className="rv-vino-nombre">
                   Chianti Classico <em>2019</em>
                 </p>
                 <p className="rv-vino-desc">
-                  Tinto de la casa, lo recomienda Massimo con la pasta. <Circulo>ottimo!</Circulo>
+                  Tinto de la casa, lo recomienda Massimo con la pasta. <Circulo>¡óptimo!</Circulo>
                 </p>
               </div>
 
               <div className="rv-recuadro">
                 <p className="rv-recuadro-titulo">
-                  Meteo in cucina <span>hoy</span>
+                  El tiempo en la cocina <span>hoy</span>
                 </p>
                 <p className="rv-vino-desc">
                   28° en el horno · masa madre feliz · lluvia, solo de tomate. Pronóstico para hoy:
@@ -267,7 +267,7 @@ export default function HomePage() {
               </div>
 
               <div className="rv-classificato">
-                <p className="rv-classificato-titulo">Se ordena subito</p>
+                <p className="rv-classificato-titulo">Se ordena al instante</p>
                 <p className="rv-classificato-texto">
                   Pide desde tu mesa sin levantarte ni pedir permiso.
                 </p>
@@ -284,11 +284,11 @@ export default function HomePage() {
       <section className="rv-carta-seccion rv-grano">
         <div className="container">
           <header className="rv-carta-cabecera">
-            <p className="rv-kicker">Edizione straordinaria</p>
+            <p className="rv-kicker">Edición extraordinaria</p>
             <h2 className="rv-carta-nombre-grande">
               La <em>Carta</em>
             </h2>
-            <p className="rv-carta-fecha">il menù del giorno — fatto in casa</p>
+            <p className="rv-carta-fecha">el menú del día — hecho en casa</p>
           </header>
 
           <div className="rv-columnas-carta">
@@ -300,8 +300,8 @@ export default function HomePage() {
                     <div className="d-flex align-items-baseline flex-wrap">
                       <span className="nombre">
                         {plato.nombre}
-                        {plato.favorito && <span className="rv-favorito">il più amato</span>}
-                        {plato.picante && <span className="rv-picante">¡piccante!</span>}
+                        {plato.favorito && <span className="rv-favorito">el más amado</span>}
+                        {plato.picante && <span className="rv-picante">¡picante!</span>}
                       </span>
                     </div>
                     <div className="d-flex align-items-baseline gap-3">
@@ -332,10 +332,10 @@ export default function HomePage() {
         <div className="container">
           <header className="rv-anuncios-cabecera">
             <h2 className="rv-anuncios-titulo">
-              Annunci <em>del servizio</em>
+              Anuncios <em>del servicio</em>
             </h2>
             <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.7rem' }}>
-              la casa se modernizó, sin perder el ristorante
+              la casa se modernizó, sin perder el restaurante
             </p>
           </header>
 
@@ -364,27 +364,27 @@ export default function HomePage() {
       <section className="rv-conto-seccion">
         <div className="container">
           <div className="rv-conto">
-            <span className="rv-timbre">Fatto con amore</span>
+            <span className="rv-timbre">Hecho con amor</span>
 
             <header className="rv-conto-cabecera">
               <p className="rv-conto-nombre">
-                Trattoria <em>del Vicolo</em> — Conto
+                Trattoria <em>del Vicolo</em> — Cuenta
               </p>
-              <p className="rv-conto-datos">N. 1987 · Via dei Fiori, 12 · Firenze · dal 1987</p>
+              <p className="rv-conto-datos">N.º 1987 · Via dei Fiori, 12 · Firenze · desde 1987</p>
             </header>
 
             <div className="rv-conto-fila">
-              <span>Pasta fresca fatta a mano</span>
+              <span>Pasta fresca hecha a mano</span>
               <span className="puntos"></span>
-              <span className="valor">gentilezza</span>
+              <span className="valor">gentileza</span>
             </div>
             <div className="rv-conto-fila">
-              <span>Vino della casa</span>
+              <span>Vino de la casa</span>
               <span className="puntos"></span>
-              <span className="valor">tempo per parlare</span>
+              <span className="valor">tiempo para hablar</span>
             </div>
             <div className="rv-conto-fila">
-              <span>Tiramisù della nonna</span>
+              <span>Tiramisú de la abuela</span>
               <span className="puntos"></span>
               <span className="valor">sobremesa</span>
             </div>
@@ -397,7 +397,7 @@ export default function HomePage() {
             <p className="rv-conto-corte">✂ corta aquí</p>
 
             <p className="rv-conto-total">
-              Totale: una cena <em>in famiglia</em>
+              Total: una cena <em>en familia</em>
             </p>
             <p className="rv-conto-pie">
               se aceptan sonrisas · propina: un buen chiste
@@ -412,7 +412,7 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <p className="rv-conto-gracias">grazie, e tornate presto — Massimo</p>
+            <p className="rv-conto-gracias">gracias, y vuelvan pronto — Massimo</p>
           </div>
 
           <div className="text-center">

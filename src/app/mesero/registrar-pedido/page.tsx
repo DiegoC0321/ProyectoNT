@@ -84,9 +84,9 @@ function RegistrarPedidoContent() {
     <div>
       <div className="rv-panel-cabecera">
         <div className="container">
-          <p className="rv-eyebrow rv-eyebrow-dark">Il sistema · ordine</p>
+          <p className="rv-eyebrow rv-eyebrow-dark">El sistema · pedido</p>
           <h1 className="rv-panel-nombre">Registrar <em>pedido</em></h1>
-          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>ogni tavolo ha fame — serve rapidamente</p>
+          <p className="rv-mano rv-mano-oliva" style={{ fontSize: '1.3rem', margin: '0.5rem 0 0' }}>cada mesa tiene hambre — servir rápido</p>
         </div>
       </div>
       <div className="container pb-4 pt-3">

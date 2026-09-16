@@ -1,7 +1,8 @@
 -- =========================================================
 -- Carta italiana oficial (Trattoria del Vicolo)
 -- Reemplaza las categorías y platillos actuales por la carta
--- italiana del diseño. Idempotente: borra y vuelve a sembrar
+-- real del restaurante (la que se muestra en la portada).
+-- Idempotente: borra y vuelve a sembrar.
 -- Ejecutar en: Supabase Dashboard -> SQL Editor
 -- =========================================================
 BEGIN;
@@ -23,22 +24,31 @@ SELECT setval('notificacion_id_seq', 1, false);
 
 -- Categorías
 INSERT INTO categoria (nombre, descripcion) VALUES
+  ('Entradas', 'Antipasti freschi per iniziare'),
   ('Pastas', 'Pasta fresca fatta a mano'),
   ('Carnes', 'Carne e secondi'),
   ('Postres', 'Dolci fatti in casa');
 
--- Platillos de la carta italiana
+-- Platillos de la carta real
 INSERT INTO platillo (nombre, descripcion, precio, disponible, categoria_id) VALUES
-  ('Spaghetti al pomodoro',    'la ricetta di nonna',          24000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Pastas')),
-  ('Lasagna della nonna',      'il più amato',                 38000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Pastas')),
-  ('Penne all''arrabbiata',    'piccante e saporito',          26000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Pastas')),
-  ('Fettuccine Alfredo',       'salsa de crema y queso',       28000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Pastas')),
-  ('Ravioli di ricotta',       'relleno de queso fresco',      32000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Pastas')),
-  ('Ossobuco alla milanese',   'con risotto al azafrán',       58000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Carnes')),
-  ('Costiletas a la parmesana','empanadas en tomate',          52000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Carnes')),
-  ('Saltimbocca alla romana',  'jamón y salvia',               48000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Carnes')),
-  ('Panna cotta',              'con frutos rojos',             16000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Postres')),
-  ('Tiramisu clásico',         'la receta tradicional',        14000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Postres')),
-  ('Zabaglione',               'mousse de vino dulce',         12000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Postres'));
+  -- Entradas
+  ('Bruschetta al pomodoro',    'pan de la casa, tomate, albahaca y aceite toscano', 16000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Entradas')),
+  ('Carpaccio di manzo',        'láminas finas, alcaparras y parmigiano',           34000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Entradas')),
+  -- Pastas
+  ('Spaghetti al pomodoro',     'la ricetta di nonna: San Marzano y albahaca',      24000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Pastas')),
+  ('Lasagna della nonna',       'ragù lento, besciamella y gratin al horno',        38000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Pastas')),
+  ('Penne all''arrabbiata',     'pomodoro, guindilla y ajo',                        26000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Pastas')),
+  ('Tagliatelle al tartufo',    'mantequilla de trufa y parmigiano 24 meses',       45000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Pastas')),
+  ('Fettuccine Alfredo',        'salsa de crema y queso',                           28000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Pastas')),
+  ('Ravioli di ricotta',        'relleno de queso fresco',                          32000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Pastas')),
+  -- Carnes
+  ('Ossobuco alla milanese',    'con risotto al azafrán',                           58000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Carnes')),
+  ('Pollo alla cacciatora',     'guiso de cazador, vino tinto y hierbas',           42000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Carnes')),
+  ('Costiletas a la parmesana', 'empanadas en tomate',                              52000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Carnes')),
+  ('Saltimbocca alla romana',   'jamón y salvia',                                   48000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Carnes')),
+  -- Postres
+  ('Panna cotta',               'con frutos rojos de temporada',                    16000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Postres')),
+  ('Tiramisù della casa',       'café, mascarpone y cacao amargo',                  18000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Postres')),
+  ('Zabaglione',                'mousse de vino dulce',                             12000, TRUE, (SELECT id FROM categoria WHERE nombre = 'Postres'));
 
 COMMIT;
