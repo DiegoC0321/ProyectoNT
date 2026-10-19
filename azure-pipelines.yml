@@ -69,10 +69,39 @@ stages:
               DATABASE_URL: 'postgresql://placeholder'
               JWT_SECRET: 'build-placeholder-secret'
 
+          - script: npm prune --omit=dev --no-audit --no-fund
+            displayName: 'Eliminar dependencias de desarrollo (npm prune)'
+            env:
+              npm_config_cache: $(Pipeline.Workspace)/.npm-cache
+
+          # El paquete que se sube a Kudu debe contener SOLO lo necesario en
+          # runtime. Un artefacto de ~460 MB (node_modules completo + .next/cache
+          # + código fuente) hace fallar el deploy en el plan F1 por cuota de
+          # disco/tiempo de extracción.
+          - script: |
+              set -e
+              STAGE="$(Build.ArtifactStagingDirectory)/app"
+              mkdir -p "$STAGE"
+
+              # .next sin la carpeta cache (135 MB que solo sirven para builds)
+              rsync -a --exclude '/cache' .next "$STAGE/"
+
+              rsync -a node_modules "$STAGE/"
+
+              if [ -d public ]; then rsync -a public "$STAGE/"; fi
+
+              cp package.json package-lock.json next.config.js tsconfig.json "$STAGE/"
+
+              echo "Contenido y tamaño del paquete:"
+              ls -la "$STAGE"
+              du -sh "$STAGE"
+              du -sh "$STAGE"/* | sort -h
+            displayName: 'Preparar paquete de solo runtime'
+
           - task: PublishBuildArtifacts@1
             displayName: 'Publicar artefacto de build'
             inputs:
-              PathtoPublish: '$(System.DefaultWorkingDirectory)'
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/app'
               ArtifactName: 'drop'
               publishLocation: 'Container'
 
@@ -104,7 +133,9 @@ stages:
                     appName: $(webAppName)
                     package: '$(Pipeline.Workspace)/drop'
                     runtimeStack: 'NODE|20-lts'
-                    startupCommand: 'npm run start'
+                    # Con ZipDeploy el symlink node_modules/.bin/next puede
+                    # romperse al extraer el zip: llamamos al binario real.
+                    startupCommand: 'node node_modules/next/dist/bin/next start'
 
                 - script: |
                     echo "Esperando a que la app arranque..."
