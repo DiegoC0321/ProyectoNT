@@ -303,6 +303,22 @@ a {
   border-color: var(--rv-papel);
 }
 
+.rv-navbar .rv-nav-acceso {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(247, 239, 221, 0.6) !important;
+  border-bottom-color: transparent !important;
+  transition: color 0.15s ease;
+}
+
+.rv-navbar .rv-nav-acceso:hover {
+  color: var(--rv-oro) !important;
+}
+
 .rv-navbar .navbar-toggler {
   border-color: rgba(247, 239, 221, 0.3);
 }

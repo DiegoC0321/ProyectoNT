@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useFlujoBloqueado } from '@/hooks/useFlujoBloqueado';
+import AccesoEmpleados from '@/components/AccesoEmpleados';
 
 const ENLACES_POR_ROL: Record<string, { href: string; label: string }[]> = {
   INVITADO: [
@@ -119,11 +120,16 @@ export default function Navbar() {
                 )}
               </>
             ) : (
-              <li className="nav-item">
-                <Link className="nav-link rv-nav-cta" href="/menu?mesa=1">
-                  <i className="bi bi-qr-code-scan"></i> Pedir desde la mesa
-                </Link>
-              </li>
+              <>
+                <li className="nav-item me-2 mb-2 mb-lg-0">
+                  <AccesoEmpleados className="nav-link rv-nav-acceso" />
+                </li>
+                <li className="nav-item">
+                  <Link className="nav-link rv-nav-cta" href="/menu?mesa=1">
+                    <i className="bi bi-qr-code-scan"></i> Pedir desde la mesa
+                  </Link>
+                </li>
+              </>
             )}
           </ul>
         </div>

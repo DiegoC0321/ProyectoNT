@@ -1,0 +1,12 @@
+{
+  "config": {
+    "node": {
+      "project": ".",
+      "useLegacyPrepare": true
+    }
+  },
+  "scripts": {
+    "predeploy": "npm run build",
+    "postdeploy": "echo 'Deploy completado'"
+  }
+}
