@@ -21,7 +21,8 @@ pr:
 variables:
   nodeVersion: '20.x'
   azureServiceConnection: 'azure-connection'       # ← cambiar por tu nombre de Service Connection
-  webAppName: 'restaurant-system-app'              # ← cambiar por el nombre de tu Web App
+  webAppName: 'restaurant-system-app-b5gpfzhfb7bsedby'  # App Service real en Azure
+  appUrl: 'https://restaurant-system-app-b5gpfzhfb7bsedby.westus3-01.azurewebsites.net'
   environmentGroupName: 'production'               # entorno con aprobación manual en Azure DevOps
 
 stages:
@@ -124,7 +125,7 @@ stages:
                 - script: |
                     echo "Esperando a que la app arranque..."
                     for i in {1..30}; do
-                      STATUS=$(curl -sS -o /tmp/app_health.out -w "%{http_code}" "https://$(webAppName).azurewebsites.net/menu" || true)
+                      STATUS=$(curl -sS -L -o /tmp/app_health.out -w "%{http_code}" "$(appUrl)/menu" || true)
                       echo "Intento $i => $STATUS"
                       if [ "$STATUS" = "200" ] || [ "$STATUS" = "302" ] || [ "$STATUS" = "307" ]; then
                         echo "Deploy OK"
