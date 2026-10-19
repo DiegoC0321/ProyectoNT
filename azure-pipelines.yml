@@ -19,11 +19,10 @@ pr:
       - main
 
 variables:
-  buildConfiguration: 'Release'
   nodeVersion: '20.x'
   azureServiceConnection: 'azure-connection'       # ← cambiar por tu nombre de Service Connection
   webAppName: 'restaurant-system-app'              # ← cambiar por el nombre de tu Web App
-  environmentGroupName: 'production'               # ← grupo de entornos en Azure DevOps
+  environmentGroupName: 'production'               # ← entorno con aprobación manual en Azure DevOps
 
 stages:
   # ============================================================
@@ -38,17 +37,14 @@ stages:
           vmImage: 'ubuntu-latest'
 
         steps:
-          # --- Checkout del código ---
           - checkout: self
             displayName: 'Descargar código fuente'
 
-          # --- Instalar Node.js ---
           - task: NodeTool@0
             displayName: 'Instalar Node.js $(nodeVersion)'
             inputs:
               versionSpec: $(nodeVersion)
 
-          # --- Cache de node_modules (acelera builds) ---
           - task: Cache@2
             displayName: 'Cache de dependencias npm'
             inputs:
@@ -57,17 +53,14 @@ stages:
                 npm | "$(Agent.OS)"
               path: $(Pipeline.Workspace)/.npm-cache
 
-          # --- Instalar dependencias ---
           - script: npm ci
             displayName: 'Instalar dependencias (npm ci)'
             env:
               npm_config_cache: $(Pipeline.Workspace)/.npm-cache
 
-          # --- Lint ---
           - script: npm run lint
             displayName: 'Ejecutar linter (ESLint)'
 
-          # --- Build de producción ---
           - script: npm run build
             displayName: 'Compilar para producción (next build)'
             env:
@@ -76,7 +69,6 @@ stages:
               DATABASE_URL: 'postgresql://placeholder'
               JWT_SECRET: 'build-placeholder-secret'
 
-          # --- Publicar artefacto para el stage de deploy ---
           - task: PublishBuildArtifacts@1
             displayName: 'Publicar artefacto de build'
             inputs:
@@ -85,91 +77,43 @@ stages:
               publishLocation: 'Container'
 
   # ============================================================
-  # ETAPA 2: DEPLOY a STAGING (Deploy Continuo)
+  # ETAPA 2: DEPLOY a PRODUCTION (con aprobación manual)
   # ============================================================
-  - stage: Deploy_Staging
-    displayName: 'Deploy a Staging'
+  - stage: Deploy_Production
+    displayName: 'Deploy a Producción'
     dependsOn: Build
     condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
     jobs:
-      - deployment: DeployStaging
-        displayName: 'Desplegar en Staging'
-        environment: 'staging'
+      - deployment: DeployProduction
+        displayName: 'Desplegar en App Service'
+        environment: $(environmentGroupName)   # ← aprobación manual configurada aquí
         pool:
           vmImage: 'ubuntu-latest'
         strategy:
           runOnce:
             deploy:
               steps:
-                # --- Descargar artefacto ---
                 - download: current
                   artifact: 'drop'
 
-                # --- Deploy a Azure App Service (Staging slot) ---
                 - task: AzureWebApp@1
-                  displayName: 'Deploy a App Service - Staging'
+                  displayName: 'Deploy a App Service'
                   inputs:
                     azureSubscription: $(azureServiceConnection)
                     appType: 'webAppLinux'
                     appName: $(webAppName)
-                    deployToSlotOrASE: true
-                    resourceGroupName: 'rg-restaurant-system'     # ← cambiar por tu resource group
-                    slotName: 'staging'
                     package: '$(Pipeline.Workspace)/drop'
                     runtimeStack: 'NODE|20-lts'
                     startupCommand: 'npm run start'
 
-                # --- Prueba rápida del health check ---
                 - script: |
                     echo "Esperando a que la app arranque..."
-                    sleep 15
-                    RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://$(webAppName)-staging.azurewebsites.net/menu)
-                    echo "Status code: $RESPONSE"
-                    if [ "$RESPONSE" != "200" ]; then
-                      echo "##vso[task.logissue type=error]La app no responde correctamente en Staging (status: $RESPONSE)"
-                      exit 1
-                    fi
-                    echo "Staging OK"
-                  displayName: 'Verificar health check en Staging'
-
-  # ============================================================
-  # ETAPA 3: DEPLOY a PRODUCTION (con aprobación manual)
-  # ============================================================
-  - stage: Deploy_Production
-    displayName: 'Deploy a Producción'
-    dependsOn: Deploy_Staging
-    condition: succeeded()
-    jobs:
-      - deployment: DeployProduction
-        displayName: 'Desplegar en Producción'
-        environment: $(environmentGroupName)   # ← aquí se configura la aprobación manual
-        pool:
-          vmImage: 'ubuntu-latest'
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                # --- Swap de slots: Staging → Production ---
-                - task: AzureAppServiceManage@0
-                  displayName: 'Swap Staging → Production'
-                  inputs:
-                    azureSubscription: $(azureServiceConnection)
-                    action: 'Swap Slots'
-                    webAppName: $(webAppName)
-                    resourceGroupName: 'rg-restaurant-system'     # ← cambiar por tu resource group
-                    sourceSlot: 'staging'
-                    targetSlot: 'production'
-                    preserveVnet: false
-
-                # --- Verificación post-deploy ---
-                - script: |
-                    echo "Esperando al swap..."
                     sleep 20
                     RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://$(webAppName).azurewebsites.net/menu)
                     echo "Status code: $RESPONSE"
                     if [ "$RESPONSE" != "200" ]; then
-                      echo "##vso[task.logissue type=error]La app no responde correctamente en Producción (status: $RESPONSE)"
+                      echo "##vso[task.logissue type=error]La app no responde correctamente (status: $RESPONSE)"
                       exit 1
                     fi
-                    echo "Producción OK"
-                  displayName: 'Verificar health check en Producción'
+                    echo "Deploy OK"
+                  displayName: 'Verificar health check'
