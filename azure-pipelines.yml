@@ -112,14 +112,14 @@ stages:
                   artifact: 'drop'
 
                 - task: AzureWebApp@1
-                  displayName: 'Deploy a App Service (Linux)'
+                  displayName: 'Deploy a App Service (Windows)'
                   inputs:
                     azureSubscription: $(azureServiceConnection)
-                    appType: 'webAppLinux'
+                    appType: 'webApp'
                     appName: $(webAppName)
                     package: '$(Pipeline.Workspace)/drop/app.zip'
                     runtimeStack: 'NODE|20-lts'
-                    startupCommand: 'npx next start -H 0.0.0.0 -p $PORT'
+                    startupCommand: 'npx next start -H 0.0.0.0 -p %PORT%'
 
                 - script: |
                     echo "Esperando a que la app arranque..."
