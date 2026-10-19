@@ -156,6 +156,7 @@ stages:
                     azureSubscription: $(azureServiceConnection)
                     action: 'Swap Slots'
                     webAppName: $(webAppName)
+                    resourceGroupName: 'rg-restaurant-system'     # ← cambiar por tu resource group
                     sourceSlot: 'staging'
                     targetSlot: 'production'
                     preserveVnet: false
