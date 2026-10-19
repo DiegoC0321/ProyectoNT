@@ -60,8 +60,6 @@ stages:
           # --- Instalar dependencias ---
           - script: npm ci
             displayName: 'Instalar dependencias (npm ci)'
-            env:
-              NODE_ENV: production
 
           # --- Lint ---
           - script: npm run lint
