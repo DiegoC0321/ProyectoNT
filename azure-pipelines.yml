@@ -22,7 +22,7 @@ variables:
   nodeVersion: '20.x'
   azureServiceConnection: 'azure-connection'       # ← cambiar por tu nombre de Service Connection
   webAppName: 'restaurant-system-app'              # ← cambiar por el nombre de tu Web App
-  environmentGroupName: 'production'               # ← entorno con aprobación manual en Azure DevOps
+  environmentGroupName: 'production'               # entorno con aprobación manual en Azure DevOps
 
 stages:
   # ============================================================
@@ -34,7 +34,7 @@ stages:
       - job: BuildJob
         displayName: 'Build Next.js'
         pool:
-          vmImage: 'ubuntu-latest'
+          vmImage: 'ubuntu-22.04'
 
         steps:
           - checkout: self
@@ -45,18 +45,8 @@ stages:
             inputs:
               versionSpec: $(nodeVersion)
 
-          - task: Cache@2
-            displayName: 'Cache de dependencias npm'
-            inputs:
-              key: 'npm | "$(Agent.OS)" | package-lock.json'
-              restoreKeys: |
-                npm | "$(Agent.OS)"
-              path: $(Pipeline.Workspace)/.npm-cache
-
           - script: npm ci
             displayName: 'Instalar dependencias (npm ci)'
-            env:
-              npm_config_cache: $(Pipeline.Workspace)/.npm-cache
 
           - script: npm run lint
             displayName: 'Ejecutar linter (ESLint)'
@@ -64,44 +54,40 @@ stages:
           - script: npm run build
             displayName: 'Compilar para producción (next build)'
             env:
-              # Variables mínimas para que el build no falle.
-              # En runtime se inyectan desde Azure App Service.
               DATABASE_URL: 'postgresql://placeholder'
               JWT_SECRET: 'build-placeholder-secret'
 
           - script: npm prune --omit=dev --no-audit --no-fund
             displayName: 'Eliminar dependencias de desarrollo (npm prune)'
-            env:
-              npm_config_cache: $(Pipeline.Workspace)/.npm-cache
 
-          # El paquete que se sube a Kudu debe contener SOLO lo necesario en
-          # runtime. Un artefacto de ~460 MB (node_modules completo + .next/cache
-          # + código fuente) hace fallar el deploy en el plan F1 por cuota de
-          # disco/tiempo de extracción.
           - script: |
               set -e
               STAGE="$(Build.ArtifactStagingDirectory)/app"
               mkdir -p "$STAGE"
 
-              # .next sin la carpeta cache (135 MB que solo sirven para builds)
               rsync -a --exclude '/cache' .next "$STAGE/"
-
               rsync -a node_modules "$STAGE/"
 
               if [ -d public ]; then rsync -a public "$STAGE/"; fi
 
               cp package.json package-lock.json next.config.js tsconfig.json "$STAGE/"
 
-              echo "Contenido y tamaño del paquete:"
-              ls -la "$STAGE"
-              du -sh "$STAGE"
-              du -sh "$STAGE"/* | sort -h
-            displayName: 'Preparar paquete de solo runtime'
+              if [ -d "$STAGE/.next/cache" ]; then
+                rm -rf "$STAGE/.next/cache"
+              fi
+
+              cd "$STAGE"
+              zip -qr ../app.zip .
+              cd -
+
+              echo "Contenido y tamaño del paquete zip:"
+              ls -lh "$(Build.ArtifactStagingDirectory)"
+            displayName: 'Preparar ZIP para App Service'
 
           - task: PublishBuildArtifacts@1
             displayName: 'Publicar artefacto de build'
             inputs:
-              PathtoPublish: '$(Build.ArtifactStagingDirectory)/app'
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/app.zip'
               ArtifactName: 'drop'
               publishLocation: 'Container'
 
@@ -115,9 +101,9 @@ stages:
     jobs:
       - deployment: DeployProduction
         displayName: 'Desplegar en App Service'
-        environment: $(environmentGroupName)   # ← aprobación manual configurada aquí
+        environment: $(environmentGroupName)
         pool:
-          vmImage: 'ubuntu-latest'
+          vmImage: 'ubuntu-22.04'
         strategy:
           runOnce:
             deploy:
@@ -131,11 +117,9 @@ stages:
                     azureSubscription: $(azureServiceConnection)
                     appType: 'webAppLinux'
                     appName: $(webAppName)
-                    package: '$(Pipeline.Workspace)/drop'
+                    package: '$(Pipeline.Workspace)/drop/app.zip'
                     runtimeStack: 'NODE|20-lts'
-                    # Con ZipDeploy el symlink node_modules/.bin/next puede
-                    # romperse al extraer el zip: llamamos al binario real.
-                    startupCommand: 'node node_modules/next/dist/bin/next start'
+                    startupCommand: 'npx next start -H 0.0.0.0 -p ${PORT:-8080}'
 
                 - script: |
                     echo "Esperando a que la app arranque..."
