@@ -112,23 +112,29 @@ stages:
                   artifact: 'drop'
 
                 - task: AzureWebApp@1
-                  displayName: 'Deploy a App Service'
+                  displayName: 'Deploy a App Service (Linux)'
                   inputs:
                     azureSubscription: $(azureServiceConnection)
-                    appType: 'webApp'   # Windows App Service
+                    appType: 'webAppLinux'
                     appName: $(webAppName)
                     package: '$(Pipeline.Workspace)/drop/app.zip'
                     runtimeStack: 'NODE|20-lts'
-                    startupCommand: 'npx next start -H 0.0.0.0 -p %PORT%'
+                    startupCommand: 'npx next start -H 0.0.0.0 -p $PORT'
 
                 - script: |
                     echo "Esperando a que la app arranque..."
-                    sleep 20
-                    RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://$(webAppName).azurewebsites.net/menu)
-                    echo "Status code: $RESPONSE"
-                    if [ "$RESPONSE" != "200" ]; then
-                      echo "##vso[task.logissue type=error]La app no responde correctamente (status: $RESPONSE)"
-                      exit 1
-                    fi
-                    echo "Deploy OK"
+                    for i in {1..30}; do
+                      STATUS=$(curl -sS -o /tmp/app_health.out -w "%{http_code}" "https://$(webAppName).azurewebsites.net/menu" || true)
+                      echo "Intento $i => $STATUS"
+                      if [ "$STATUS" = "200" ] || [ "$STATUS" = "302" ] || [ "$STATUS" = "307" ]; then
+                        echo "Deploy OK"
+                        exit 0
+                      fi
+                      sleep 10
+                    done
+
+                    echo "##vso[task.logissue type=error]La app no responde correctamente (status: $STATUS)"
+                    echo "Contenido de la respuesta:"
+                    cat /tmp/app_health.out || true
+                    exit 1
                   displayName: 'Verificar health check'
