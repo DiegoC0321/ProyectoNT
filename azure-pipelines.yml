@@ -115,11 +115,11 @@ stages:
                   displayName: 'Deploy a App Service'
                   inputs:
                     azureSubscription: $(azureServiceConnection)
-                    appType: 'webAppLinux'
+                    appType: 'webApp'   # Windows App Service
                     appName: $(webAppName)
                     package: '$(Pipeline.Workspace)/drop/app.zip'
                     runtimeStack: 'NODE|20-lts'
-                    startupCommand: 'npx next start -H 0.0.0.0 -p ${PORT:-8080}'
+                    startupCommand: 'npx next start -H 0.0.0.0 -p %PORT%'
 
                 - script: |
                     echo "Esperando a que la app arranque..."
