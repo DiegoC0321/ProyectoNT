@@ -1,6 +1,6 @@
 # ============================================================
 # Pipeline CI/CD para Sistema de Gestión de Restaurante Inteligente
-# Azure DevOps → Azure App Service (Next.js 14 + Node.js 20)
+# Azure DevOps → Azure App Service (Windows + Node.js) → Next.js 14
 # ============================================================
 
 trigger:
@@ -20,9 +20,15 @@ pr:
 
 variables:
   nodeVersion: '20.x'
-  azureServiceConnection: 'azure-connection'       # ← cambiar por tu nombre de Service Connection
-  webAppName: 'restaurant-system-app'              # ← cambiar por el nombre de tu Web App
-  environmentGroupName: 'production'               # ← entorno con aprobación manual en Azure DevOps
+  azureServiceConnection: 'azure-connection'       # ← tu Service Connection
+  environmentGroupName: 'production'               # ← entorno con aprobación manual
+  # OJO: no usar el nombre "webAppName". El Deployment Center del portal crea
+  # una variable webAppName con el hostname (con sufijo) y las variables de la
+  # UI sobrescriben el YAML, apuntando a un recurso que no existe.
+  appServiceName: 'restaurant-system-app'
+  # Solo se usan si el task no devuelve AppServiceApplicationUrl.
+  appServiceUrl: 'https://restaurant-system-app-b5gpfzhfb7bsedby.westus3-01.azurewebsites.net'
+  appServiceUrlAlt: 'https://restaurant-system-app-b5gpfzhfb7bsedby.azurewebsites.net'
 
 stages:
   # ============================================================
@@ -34,7 +40,9 @@ stages:
       - job: BuildJob
         displayName: 'Build Next.js'
         pool:
-          vmImage: 'ubuntu-latest'
+          # El App Service es Windows: node_modules debe traer los binarios
+          # win32 (por ejemplo @next/swc-win32-x64-msvc).
+          vmImage: 'windows-latest'
 
         steps:
           - checkout: self
@@ -75,27 +83,32 @@ stages:
               npm_config_cache: $(Pipeline.Workspace)/.npm-cache
 
           # El paquete que se sube a Kudu debe contener SOLO lo necesario en
-          # runtime. Un artefacto de ~460 MB (node_modules completo + .next/cache
-          # + código fuente) hace fallar el deploy en el plan F1 por cuota de
-          # disco/tiempo de extracción.
-          - script: |
-              set -e
-              STAGE="$(Build.ArtifactStagingDirectory)/app"
-              mkdir -p "$STAGE"
+          # runtime: un artefacto con el código fuente completo, .next/cache y
+          # las devDependencies hace fallar el deploy en el plan F1 por cuota
+          # de disco (1 GB) y tiempo de extracción.
+          - powershell: |
+              $ErrorActionPreference = 'Stop'
+              $stage = Join-Path '$(Build.ArtifactStagingDirectory)' 'app'
+              New-Item -ItemType Directory -Force -Path $stage | Out-Null
 
-              # .next sin la carpeta cache (135 MB que solo sirven para builds)
-              rsync -a --exclude '/cache' .next "$STAGE/"
+              # .next sin la carpeta cache (solo sirve para builds)
+              robocopy '.next' (Join-Path $stage '.next') /E /XD cache /NFL /NDL /NJH /NJS /NP | Out-Null
+              if ($LASTEXITCODE -ge 8) { throw "robocopy .next fallo ($LASTEXITCODE)" }
 
-              rsync -a node_modules "$STAGE/"
+              robocopy 'node_modules' (Join-Path $stage 'node_modules') /E /NFL /NDL /NJH /NJS /NP | Out-Null
+              if ($LASTEXITCODE -ge 8) { throw "robocopy node_modules fallo ($LASTEXITCODE)" }
 
-              if [ -d public ]; then rsync -a public "$STAGE/"; fi
+              if (Test-Path 'public') {
+                robocopy 'public' (Join-Path $stage 'public') /E /NFL /NDL /NJH /NJS /NP | Out-Null
+                if ($LASTEXITCODE -ge 8) { throw "robocopy public fallo ($LASTEXITCODE)" }
+              }
 
-              cp package.json package-lock.json next.config.js tsconfig.json "$STAGE/"
+              Copy-Item package.json, package-lock.json, next.config.js, server.js, web.config -Destination $stage
 
-              echo "Contenido y tamaño del paquete:"
-              ls -la "$STAGE"
-              du -sh "$STAGE"
-              du -sh "$STAGE"/* | sort -h
+              $mb = (Get-ChildItem $stage -Recurse -File | Measure-Object Length -Sum).Sum / 1MB
+              Write-Host ('Tamano del paquete: {0:N0} MB' -f $mb)
+              Get-ChildItem $stage | Select-Object Mode, Length, Name | Format-Table
+              exit 0
             displayName: 'Preparar paquete de solo runtime'
 
           - task: PublishBuildArtifacts@1
@@ -126,25 +139,43 @@ stages:
                   artifact: 'drop'
 
                 - task: AzureWebApp@1
-                  displayName: 'Deploy a App Service'
+                  name: deployWebApp
+                  displayName: 'Deploy a App Service (Windows)'
                   inputs:
                     azureSubscription: $(azureServiceConnection)
-                    appType: 'webAppLinux'
-                    appName: $(webAppName)
+                    # La Web App está en Windows: en Windows no existen
+                    # runtimeStack ni startupCommand; el arranque lo definen
+                    # web.config + server.js (iisnode).
+                    appType: 'webApp'
+                    appName: $(appServiceName)
                     package: '$(Pipeline.Workspace)/drop'
-                    runtimeStack: 'NODE|20-lts'
-                    # Con ZipDeploy el symlink node_modules/.bin/next puede
-                    # romperse al extraer el zip: llamamos al binario real.
-                    startupCommand: 'node node_modules/next/dist/bin/next start'
+                    deploymentMethod: 'zipDeploy'
 
                 - script: |
-                    echo "Esperando a que la app arranque..."
-                    sleep 20
-                    RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://$(webAppName).azurewebsites.net/menu)
-                    echo "Status code: $RESPONSE"
-                    if [ "$RESPONSE" != "200" ]; then
-                      echo "##vso[task.logissue type=error]La app no responde correctamente (status: $RESPONSE)"
-                      exit 1
+                    APP_URL="$(deployWebApp.AppServiceApplicationUrl)"
+                    if [ -z "$APP_URL" ]; then
+                      APP_URL="$(appServiceUrl)"
                     fi
-                    echo "Deploy OK"
+                    APP_URL="${APP_URL%/}"
+
+                    for INTENTO in 1 2 3 4 5 6; do
+                      for URL in "$APP_URL" "$(appServiceUrlAlt)"; do
+                        if [ -z "$URL" ]; then
+                          continue
+                        fi
+                        URL="${URL%/}"
+                        CODE=$(curl -s -o /dev/null -w "%{http_code}" "$URL/menu" || true)
+                        echo "Intento $INTENTO -> $URL/menu : $CODE"
+                        case "$CODE" in
+                          200|302|307)
+                            echo "Deploy OK ($URL)"
+                            exit 0
+                            ;;
+                        esac
+                      done
+                      sleep 15
+                    done
+
+                    echo "##vso[task.logissue type=error]La app no responde 200/302/307 en /menu"
+                    exit 1
                   displayName: 'Verificar health check'
