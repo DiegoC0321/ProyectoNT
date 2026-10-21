@@ -1,11 +1,16 @@
 // Servidor de arranque para App Service en Windows con iisnode.
-// iisnode NO habla el protocolo HTTP con el proceso de node: le pasa el puerto
-// como un NAMED PIPE en process.env.PORT (por eso hay que pasarlo tal cual a
-// listen(), nunca convertirlo a numero). Si no existe PORT, usamos 8080.
+//
+// iisnode NO habla HTTP con el proceso de node: le pasa el puerto como un
+// NAMED PIPE en process.env.PORT (por ejemplo \\.\pipe\xxxx), y hay que
+// pasarlo tal cual a listen() sin convertirlo a numero.
+//
+// IMPORTANTE: si no llega PORT, NO hay que escuchar en un puerto fijo tipo
+// 8080, porque iisnode ya ocupa ese puerto y se produce EADDRINUSE. En ese
+// caso (ejecucion manual) usamos un puerto alto libre.
 const http = require('http');
 const next = require('next');
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3971;
 const app = next({ dev: false, dir: __dirname, hostname: 'localhost', port });
 const handle = app.getRequestHandler();
 
