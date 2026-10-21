@@ -140,6 +140,37 @@ stages:
                 - download: current
                   artifact: 'drop'
 
+                # ZipDeploy en App Service Windows NO limpia wwwroot: deja
+                # node_modules/.next viejos mezclados con los nuevos y la app
+                # arranca con binarios obsoletos (500 de iisnode). Borramos
+                # wwwroot via API de Kudu usando las credenciales de publicacion
+                # de la propia Web App (no hace falta la service connection ARM).
+                - task: AzureCLI@2
+                  displayName: 'Limpiar wwwroot via Kudu'
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      set -e
+                      USER=$(az webapp deployment list-publishing-credentials \
+                        --name $(appServiceName) \
+                        --resource-group rg-restaurant-system \
+                        --query publishingUserName -o tsv)
+                      PASS=$(az webapp deployment list-publishing-credentials \
+                        --name $(appServiceName) \
+                        --resource-group rg-restaurant-system \
+                        --query publishingPassword -o tsv)
+                      KUDU="https://$(appServiceName).scm.azurewebsites.net/api/vfs/site/wwwroot"
+
+                      echo "Limpiando wwwroot (node_modules, .next) via Kudu..."
+                      for ITEM in node_modules .next; do
+                        curl -sS -u "$USER:$PASS" -X DELETE "$KUDU/$ITEM" -o /dev/null -w "  delete $ITEM -> %{http_code}\n" || true
+                      done
+
+                      echo "Contenido restante en wwwroot:"
+                      curl -sS -u "$USER:$PASS" "$KUDU/" | head -c 2000 || true
+
                 - task: AzureWebApp@1
                   name: deployWebApp
                   displayName: 'Deploy a App Service (Windows)'
