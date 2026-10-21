@@ -19,7 +19,9 @@ pr:
       - main
 
 variables:
-  nodeVersion: '20.x'
+  # El App Service Windows corre Node 22 (Kudu: v22.23.2). Al compilar con la
+  # misma version, los binarios nativos (@next/swc-win32-x64-msvc) coinciden.
+  nodeVersion: '22.x'
   azureServiceConnection: 'azure-connection'       # ← tu Service Connection
   environmentGroupName: 'production'               # ← entorno con aprobación manual
   # OJO: no usar el nombre "webAppName". El Deployment Center del portal crea
